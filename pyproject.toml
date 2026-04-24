@@ -5,6 +5,9 @@ runtime_requires = [
 ]
 auto_add_recursive_runtime_dependencies = true
 
+[tool.black]
+line-length = 120
+
 [tool.commitizen]
 name = "cz_conventional_commits"
 tag_format = "$version"

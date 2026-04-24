@@ -1,0 +1,16 @@
+qgis
+qt-creator
+miniconda
+cmake
+cmake-docs
+kubeseal
+lld
+moc
+ninja
+pkgconf
+pyqt@5
+qt
+vulkan-tools
+virtualbox
+docker-machine
+docker

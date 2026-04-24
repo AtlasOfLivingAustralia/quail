@@ -1,7 +1,7 @@
 Plugin Builder Results
 
 Your plugin AlaQgisPlugin was created in:
-    /Users/buy003/Documents/GitHub/alaQgisPlugin
+    /Users/buy003/Documents/GitHub/ala-qgis-plugin
 
 Your QGIS plugin directory is located at:
     /Users/buy003/Library/Application Support/QGIS/QGIS3/profiles/default/python/plugins
@@ -10,10 +10,10 @@ What's Next:
 
   * requirements: 
 
+    pyuic5 -x alaQgisPlugin_dialog_base.ui  -o alaQgisPlugin_dialog_base.py  
+
   * Copy the entire directory containing your new plugin to the QGIS plugin
     directory
-
-    pyuic5 -x alaQgisPlugin_dialog_base.ui  -o alaQgisPlugin_dialog_base.py  
 
   * Compile the resources file using pyrcc5 <== pyrcc5 -o resources.py resources.qrc 
 

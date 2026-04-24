@@ -8,48 +8,42 @@
 
 """
 
-__author__ = 'amanda.buyan@csiro.au'
-__date__ = '2025-10-01'
-__copyright__ = 'Copyright 2025, Atlas of Living Australia'
+__author__ = "amanda.buyan@csiro.au"
+__date__ = "2025-10-01"
+__copyright__ = "Copyright 2025, Atlas of Living Australia"
 
 import unittest
 
-from qgis.PyQt.QtGui import QDialogButtonBox, QDialog
+from qgis.testing import mocked, start_app, unittest
+from qgis.PyQt.QtGui import QDialog, QDialogButtonBox
+from utilities import get_qgis_app
 
 from alaQgisPlugin_dialog import AlaQgisPluginDialog
 
-from utilities import get_qgis_app
-QGIS_APP = get_qgis_app()
-
+start_app()
 
 class AlaQgisPluginDialogTest(unittest.TestCase):
     """Test dialog works."""
 
+    @classmethod
     def setUp(self):
         """Runs before each test."""
-        self.dialog = AlaQgisPluginDialog(None)
+        self.iface = mocked.get_iface()
 
+    @classmethod
     def tearDown(self):
         """Runs after each test."""
-        self.dialog = None
+        self.iface = None
 
-    def test_dialog_ok(self):
-        """Test we can click OK."""
+    def test_mint_doi(self):
+        """Test whether or not you get True when you tick the DOI button"""
+        checkBox = self.iface.createDoiCheckBox() # really not sure about this
+        checkBox.click()
+        result = AlaQgisPluginDialog.mint_doi.result()
+        self.assertEqual(result, True)
 
-        button = self.dialog.button_box.button(QDialogButtonBox.Ok)
-        button.click()
-        result = self.dialog.result()
-        self.assertEqual(result, QDialog.Accepted)
-
-    def test_dialog_cancel(self):
-        """Test we can click cancel."""
-        button = self.dialog.button_box.button(QDialogButtonBox.Cancel)
-        button.click()
-        result = self.dialog.result()
-        self.assertEqual(result, QDialog.Rejected)
 
 if __name__ == "__main__":
     suite = unittest.makeSuite(AlaQgisPluginDialogTest)
     runner = unittest.TextTestRunner(verbosity=2)
     runner.run(suite)
-

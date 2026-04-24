@@ -8,14 +8,13 @@
 
 """
 
-__author__ = 'amanda.buyan@csiro.au'
-__date__ = '2025-10-01'
-__copyright__ = 'Copyright 2025, Atlas of Living Australia'
+__author__ = "amanda.buyan@csiro.au"
+__date__ = "2025-10-01"
+__copyright__ = "Copyright 2025, Atlas of Living Australia"
 
 import unittest
 
 from qgis.PyQt.QtGui import QIcon
-
 
 
 class AlaQgisPluginDialogTest(unittest.TestCase):
@@ -31,14 +30,12 @@ class AlaQgisPluginDialogTest(unittest.TestCase):
 
     def test_icon_png(self):
         """Test we can click OK."""
-        path = ':/plugins/AlaQgisPlugin/icon.png'
+        path = ":/plugins/AlaQgisPlugin/icon.png"
         icon = QIcon(path)
         self.assertFalse(icon.isNull())
+
 
 if __name__ == "__main__":
     suite = unittest.makeSuite(AlaQgisPluginResourcesTest)
     runner = unittest.TextTestRunner(verbosity=2)
     runner.run(suite)
-
-
-
