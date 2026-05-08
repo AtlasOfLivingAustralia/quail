@@ -208,7 +208,7 @@
         </size>
        </property>
       </widget>
-      <widget class="QPushButton" name="checkAlaBackbonePushButton">
+      <widget class="QPushButton" name="checkTaxonBackbonePushButton">
        <property name="enabled">
         <bool>true</bool>
        </property>

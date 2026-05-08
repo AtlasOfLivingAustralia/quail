@@ -62,7 +62,7 @@ class AlaQgisPluginDialog(QtWidgets.QDialog, FORM_CLASS):
         self._populate_data_profiles()
 
         # define the actions clicking on these buttons will run
-        self.checkAlaBackbonePushButton.clicked.connect(self.check_ala_backbone)
+        self.checkTaxonBackbonePushButton.clicked.connect(self.check_ala_backbone)
         self.checkNumOccurrences.clicked.connect(self.check_num_occurrences)
         self.occDownload.clicked.connect(self.download_occurrences)
         self.speciesListCountsStatuses.clicked.connect(self.get_species_list_counts_statuses)
@@ -75,28 +75,26 @@ class AlaQgisPluginDialog(QtWidgets.QDialog, FORM_CLASS):
      ***************************************************************************/
 
     /***************************************************************************
-     * Predefined values for the plugin, either statically or dynamically      *
-     * defined.                                                                *
+     * Predefined values for the plugin                                        *
      *                                                                         *
-     * Static Dictionaries:                                                    *
+     * Dynamic Dictionaries (values from galah-python):                        *
      *                                                                         *
-     *   basisOfRecord                                                         *
-     *       Describes how observations are made                               *
-     *   threatenedLists                                                       *
-     *       Authoritative lists of threatened species available in the ALA    *
-     *   sensitiveLists                                                        *
-     *       Authoritative lists of sensitive species available in the ALA     *
-     *   migratoryLists                                                        *
-     *       Authoritative lists of migratory species available in the ALA     *
-     *   nonNativeLists                                                        *
-     *       Authoritative lists of non-Native species available in the ALA    *
-     *                                                                         *
-     * Dynamic Dictionaries:                                                   *
-     *                                                                         *
+     *   atlasNames                                                            *
+     *       List of all atlases available in galah-python                     *
      *   dataProfiles                                                          *
-     *       List of existing data profiles to filter your query  in the ALA   *
+     *       List of existing data profiles to filter your query in the chosen *
+     *       atlas                                                             *
      *   reasons                                                               *
-     *       List of all reasons for downloading data in the ALA               *
+     *       List of all reasons for downloading data in the chosen atlas      *
+     *                                                                         *
+     * Initialised Plugin-Global Dictionaries:                                 *
+     *                                                                         *
+     *   spatialColumns                                                        *
+     *       For each spatial layer in QGIS, list all column names available   *
+     *       in the shape file                                                 *
+     *   taxonomicColumns                                                      *
+     *       For a CSV file uploaded containing taxonomic information, list    *
+     *       all columns available in the file                                 *
      *                                                                         *
      ***************************************************************************/
     """
@@ -121,7 +119,7 @@ class AlaQgisPluginDialog(QtWidgets.QDialog, FORM_CLASS):
         else:
             atlasNames[row["atlas"]] = row["atlas"]
 
-    # get ALA profiles
+    # get data profiles
     profiles = galah.show_all(profiles=True)
 
     # initialise data profiles dict
@@ -146,8 +144,8 @@ class AlaQgisPluginDialog(QtWidgets.QDialog, FORM_CLASS):
         reasons[row["name"]] = row["id"]
 
     # add columns for getting and displaying data
-    taxonomicColumns = {}
     spatialColumns = {}
+    taxonomicColumns = {}
 
     """
     /***************************************************************************
@@ -187,6 +185,15 @@ class AlaQgisPluginDialog(QtWidgets.QDialog, FORM_CLASS):
      * all of these functions will show information to the user, be it         *
      * information, warning or display a data table.                           *
      *                                                                         *
+     *   close_dialogBox:                                                      *
+     *       close a dialogBox object; also assign a specific dictionary if    *
+     *       the user has closed the box without assigning columns             *
+     *   get_spatial_selections_dialogBox:                                     *
+     *       gets the selected columns from each shapefile combo box - these   *
+     *       will be used to name the different shapes the users can choose    *
+     *   get_taxon_column_names:                                               *
+     *       gets the selected columns from each taxonomic combo box - these   *
+     *       will be used to query galah-python                                *
      *   show_info_messagebox:                                                 *
      *       gives the user information, for example the number of records     *
      *       they will download with their current query                       *
@@ -196,9 +203,61 @@ class AlaQgisPluginDialog(QtWidgets.QDialog, FORM_CLASS):
      *   show_table_dialogbox:                                                 *
      *       shows the user a table of their data, such as the taxonomy they   *
      *       will be using to query their chosen atlas                         *
+     *   show_spatial_dialogbox:                                               *
+     *       shows the user a table of their data, such as the taxonomy they   *
+     *       will be using to query their chosen atlas                         *
      *                                                                         *
      ***************************************************************************/
     """
+    def close_dialogBox(self, dialogBox=None, dialogue=None):
+
+        # return a specific dictionary if the user has closed the window without selecting 
+        # anything; close the application
+        if dialogue == "Closed":
+            self.spatialColumns = {dialogue: dialogue}
+        dialogBox.close()
+
+    
+    def get_spatial_selections_dialogBox(self, dialogBox=None):
+
+        # separate the combo boxes and labels
+        comboboxes = [x for x in dialogBox.children() if type(x) is QComboBox]
+        labels = [x for x in dialogBox.children() if type(x) is QLabel]
+
+        # initialise empty dictionary for storing information
+        columns = {}
+
+        # go through all the comboboxes to see which ones the user selected
+        for i, (lb, cb) in enumerate(zip(labels, comboboxes)):
+            if cb.currentText() != COMBOBOX_NONE_LABEL:
+                columns[lb.objectName()] = cb.currentText()
+
+        # check whether or not we are looking for taxonomic columns or spatial columns - assign
+        # dictionary to correct object
+        self.spatialColumns = columns
+
+        # close the dialog box
+        self.close_dialogBox(dialogBox=dialogBox, dialogue="got selections")
+
+
+    def get_taxon_column_names(self):
+
+        # get all taxonomy comboboxes and labels for iteration
+        comboboxes = [x for x in self.Taxonomy.children() if type(x) is QComboBox]
+        labels = [x for x in self.Taxonomy.children() if type(x) is QLabel]
+
+        # initialise empty dictionary for storing information
+        columns = {}
+
+        # go through all the comboboxes to see which ones the user selected
+        for i, (lb, cb) in enumerate(zip(labels, comboboxes)):
+            if cb.currentText() != COMBOBOX_NONE_LABEL:
+                columns[lb.objectName()] = cb.currentText()
+
+        # check whether or not we are looking for taxonomic columns or spatial columns - assign
+        # dictionary to correct object
+        self.taxonomicColumns = columns
+
 
     def show_info_messagebox(self, text=None, title=None):
 
@@ -214,6 +273,7 @@ class AlaQgisPluginDialog(QtWidgets.QDialog, FORM_CLASS):
         # show message box
         retval = msg.exec()
 
+
     def show_warning_messagebox(self, title=None, text=None):
 
         # initiate message box
@@ -226,6 +286,47 @@ class AlaQgisPluginDialog(QtWidgets.QDialog, FORM_CLASS):
         msg.setStandardButtons(QMessageBox.StandardButton.Ok | QMessageBox.StandardButton.Cancel)
 
         # show message box
+        retval = msg.exec()
+
+        
+    def show_spatial_dialogbox(self, title=None, selection_dict=None):
+
+        # set offset here to do spacing maths
+        offset = 30
+
+        # set up the dialog box
+        msg = QDialog()
+        msg.resize(300, offset * (len(selection_dict.keys()) + 3))
+        msg.setWindowTitle(title)
+
+        # loop over keys in selection dictionary
+        for i, key in enumerate(selection_dict.keys()):
+
+            # create label
+            label = QLabel(key, msg)
+            label.setObjectName(key)
+            label.move(offset, i * offset + offset + 5)  # +2 to offset?
+
+            # create a combo box
+            comboBox = QComboBox(msg)
+            comboBox.setObjectName("{}ComboBox".format(key))
+            comboBox.move(100 + offset, i * offset + offset)
+            comboBox.addItems(sorted(selection_dict[key]))
+
+        # create the Set Columns button and Cancel buttons, move them into the correct place, and link them to the
+        # relevant functions
+        msg.setButton = QPushButton("Set Columns", msg)
+        msg.setButton.move(50, int(offset * (float(len(selection_dict.keys())) + 1.5)))
+        msg.setButton.clicked.connect(
+            lambda: self.get_spatial_selections_dialogBox(dialogBox=msg)
+        )
+        msg.cancelButton = QPushButton("Cancel", msg)
+        msg.cancelButton.move(150, int(offset * (float(len(selection_dict.keys())) + 1.5)))
+        msg.cancelButton.clicked.connect(
+            lambda: self.close_dialogBox(dialogBox=msg, dialogue="Closed")
+        )
+
+        # execute the window
         retval = msg.exec()
 
     def show_table_dialogbox(self, table=None, title=None):
@@ -270,90 +371,6 @@ class AlaQgisPluginDialog(QtWidgets.QDialog, FORM_CLASS):
         # show the window
         retval = msg.exec()
 
-    def show_spatial_dialogbox(self, title=None, selection_dict=None):
-
-        # set up the dialog box
-        msg = QDialog()
-        msg.resize(300, 500)
-        msg.setWindowTitle(title)
-
-        # set offset for spacing
-        offset = 30
-
-        # loop over keys in selection dictionary
-        for i, key in enumerate(selection_dict.keys()):
-
-            # create label
-            label = QLabel(key, msg)
-            label.setObjectName(key)
-            label.move(offset, i * offset + offset + 5)  # +2 to offset?
-
-            # create a combo box
-            comboBox = QComboBox(msg)
-            comboBox.setObjectName("{}ComboBox".format(key))
-            comboBox.move(100 + offset, i * offset + offset)
-            comboBox.addItems(sorted(selection_dict[key]))
-
-        # create the Set Columns button and Cancel buttons, move them into the correct place, and link them to the
-        # relevant functions
-        msg.setButton = QPushButton("Set Columns", msg)
-        msg.setButton.move(50, 400)
-        msg.setButton.clicked.connect(
-            lambda: self.get_selections_dialogBox(dialogBox=msg)
-        )
-        msg.cancelButton = QPushButton("Cancel", msg)
-        msg.cancelButton.move(150, 400)
-        msg.cancelButton.clicked.connect(
-            lambda: self.close_dialogBox(dialogBox=msg, dialogue="Closed")
-        )
-
-        # execute the window
-        retval = msg.exec()
-
-    def get_selections_dialogBox(self, dialogBox=None):
-
-        # separate the combo boxes and labels
-        comboboxes = [x for x in dialogBox.children() if type(x) is QComboBox]
-        labels = [x for x in dialogBox.children() if type(x) is QLabel]
-
-        # initialise empty dictionary for storing information
-        columns = {}
-
-        # go through all the comboboxes to see which ones the user selected
-        for i, (lb, cb) in enumerate(zip(labels, comboboxes)):
-            if cb.currentText() != COMBOBOX_NONE_LABEL:
-                columns[lb.objectName()] = cb.currentText()
-
-        # check whether or not we are looking for taxonomic columns or spatial columns - assign
-        # dictionary to correct object
-        self.spatialColumns = columns
-
-        # close the dialog box
-        self.close_dialogBox(dialogBox=dialogBox, dialogue="got selections")
-
-    def close_dialogBox(self, dialogBox=None, dialogue=None):
-
-        # try this
-        if dialogue == "Closed":
-            self.spatialColumns = {dialogue: dialogue}
-        dialogBox.close()
-
-    def get_taxon_column_names(self):
-
-        comboboxes = [x for x in self.Taxonomy.children() if type(x) is QComboBox]
-        labels = [x for x in self.Taxonomy.children() if type(x) is QLabel]
-
-        # initialise empty dictionary for storing information
-        columns = {}
-
-        # go through all the comboboxes to see which ones the user selected
-        for i, (lb, cb) in enumerate(zip(labels, comboboxes)):
-            if cb.currentText() != COMBOBOX_NONE_LABEL:
-                columns[lb.objectName()] = cb.currentText()
-
-        # check whether or not we are looking for taxonomic columns or spatial columns - assign
-        # dictionary to correct object
-        self.taxonomicColumns = columns
 
     """
     /***************************************************************************
@@ -378,10 +395,15 @@ class AlaQgisPluginDialog(QtWidgets.QDialog, FORM_CLASS):
      *       if someone has provided a DOI, use it as your query argument      *
      *   parse_email:                                                          *
      *       gets user email for adding to query                               *
+     *   parse_filters:                                                        *
+     *       parse the filters from the UI and format them for galah-python    *
      *   parse_present_absent:                                                 *
      *       determine if users want absence, presence, or both                *
      *   parse_reason:                                                         *
      *       get variable user has chosen in data profile combo box            *
+     *   parse_spatial (IN PROGRESS):                                          *
+     *       parse all selected spatial layers and return them to galah-python *
+     *       *still need to determine if drawing bounding box                  *
      *   parse_taxonomy:                                                       *
      *       parses taxonomic names from either a text box or uploaded csv     *
      *   set_data_fields:                                                      *
@@ -545,6 +567,29 @@ class AlaQgisPluginDialog(QtWidgets.QDialog, FORM_CLASS):
     def parse_email(self):
         return self.emailLineEdit.text()
 
+    def parse_filters(self):
+
+        # initialise filters list
+        filters = []
+
+        # get all types of filters from the UI
+        authoritative_lists = self.parse_authoritative_lists()
+        date1, date2 = self.parse_date()
+        bor = self.parse_basis_of_record()
+        pa = self.parse_present_absent()
+
+        # loop over all filters to see which ones are present
+        for fs in [authoritative_lists, bor, pa, date1, date2]:
+            if fs is not None:
+                filters.append(fs)
+
+        # if there are no filters, return None
+        if len(filters) == 0:
+            return None
+
+        # return whatever filters were present in the UI
+        return filters
+
     # check completed
     def parse_present_absent(self):
 
@@ -568,6 +613,10 @@ class AlaQgisPluginDialog(QtWidgets.QDialog, FORM_CLASS):
         for r in self.reasons:
             if self.reasonsComboBox.currentText() == r:
                 return self.reasons[r]
+
+
+    def parse_spatial(self):
+        n = 1
 
     # check completed
     def parse_taxonomy(self):
@@ -649,14 +698,12 @@ class AlaQgisPluginDialog(QtWidgets.QDialog, FORM_CLASS):
 
                     # return "Closed" if this appears in the dictionary, as the user has closed the previous window
                     return "Closed"
+                
                 else:
+
+                    # assume user has not chosen any columns
                     self.show_warning_messagebox(text="Please select columns for your taxonomic arguments.")
                     return "No columns"
-            
-            else:
-
-                self.show_warning_messagebox("You need to use the Select Taxonomic Columns button to select what columns you use from your file.")
-                return "Closed"
 
         # return the taxonomic dictionary
         return taxonomy_dict
@@ -679,18 +726,15 @@ class AlaQgisPluginDialog(QtWidgets.QDialog, FORM_CLASS):
      * all of these functions will get spatial information from the UI.        *
      *                                                                         *
      *   display_layers_from_UI:                                               *
-     *       displays all layers currently in the UI in [a checkable           *
-     *.      searchable combo box????]                                         *
-     *   get_layers_from_UI:                                                   *
-     *       parse the filters from the UI and format them for galah-python    *
-     *   parse_filters:                                                        *
-     *       parse the filters from the UI and format them for galah-python    *
-     *   parse_filters:                                                        *
-     *       parse the filters from the UI and format them for galah-python    *
+     *       displays all layers currently in the UI, and have all fields user *
+     *       can check in a searchable combo box                               *
+     *   get_layer_info_from_UI:                                               *
+     *       get all available layers from the UI and return a dictionary with *
+     *       layers as the keys, and all possible fields for each layer as the *
+     *       values                                                            *
      *                                                                         *
      ***************************************************************************/
     """
-
     def display_layers_from_UI(self):
 
         # gets layers available from UI
@@ -714,7 +758,6 @@ class AlaQgisPluginDialog(QtWidgets.QDialog, FORM_CLASS):
                 if any(x in l.name() for x in self.spatialColumns.keys()):
 
                     # get features and initialise lists
-                    # top_feature_list = ["None Selected", "Select All"]
                     feature_list = []
                     features = list(l.getFeatures())
 
@@ -726,7 +769,7 @@ class AlaQgisPluginDialog(QtWidgets.QDialog, FORM_CLASS):
                     label = QLabel(l.name()[:12], self.Spatial)
                     label.setObjectName(l.name()[:12])
                     label.move(20 + i * offset, 80)
-                    label.show()  # +2 to offset?
+                    label.show()
 
                     # create a combo box for the layer
                     checkComboBox = QgsCheckableComboBox(self.Spatial)
@@ -752,46 +795,6 @@ class AlaQgisPluginDialog(QtWidgets.QDialog, FORM_CLASS):
                 layer_attr[l.name()[:12]] = temp_list
 
         return layer_attr
-
-    def parse_spatial(self):
-        n = 1
-
-    """
-    /***************************************************************************
-     Query Data
-     ***************************************************************************/
-
-    /***************************************************************************
-     * all of these functions will get input data from the UI.                 *
-     *                                                                         *
-     *   parse_filters:                                                        *
-     *       parse the filters from the UI and format them for galah-python    *
-     *                                                                         *
-     ***************************************************************************/
-    """
-
-    def parse_filters(self):
-
-        # initialise filters list
-        filters = []
-
-        # get all types of filters from the UI
-        authoritative_lists = self.parse_authoritative_lists()
-        date1, date2 = self.parse_date()
-        bor = self.parse_basis_of_record()
-        pa = self.parse_present_absent()
-
-        # loop over all filters to see which ones are present
-        for fs in [authoritative_lists, bor, pa, date1, date2]:
-            if fs is not None:
-                filters.append(fs)
-
-        # if there are no filters, return None
-        if len(filters) == 0:
-            return None
-
-        # return whatever filters were present in the UI
-        return filters
 
     """
     /***************************************************************************
@@ -832,6 +835,7 @@ class AlaQgisPluginDialog(QtWidgets.QDialog, FORM_CLASS):
             else:
                 self.show_info_messagebox("Please provide a CSV file.")
 
+        # display values that will be used for taxonomic columns on the UI
         self.show_taxonomic_columns()
 
     def download_species_list(self, species_list=None):
@@ -862,7 +866,7 @@ class AlaQgisPluginDialog(QtWidgets.QDialog, FORM_CLASS):
             "specific epithet",
         ]
         
-        # make this an elif for now
+        # check if a user has uploaded a file yet
         if hasattr(self, "speciesFileLineEdit"):
 
             # check to see if this is not None
@@ -912,6 +916,8 @@ class AlaQgisPluginDialog(QtWidgets.QDialog, FORM_CLASS):
                         i_offset += 3
 
         else:
+
+            # otherwise, throw an error to show user they need to provide a file
             self.show_warning_messagebox("You need to provide a file to choose columns.")
 
     """
@@ -922,7 +928,7 @@ class AlaQgisPluginDialog(QtWidgets.QDialog, FORM_CLASS):
     /***************************************************************************
      * all of these functions will get input data from the UI.                 *
      *                                                                         *
-     *   check_ala_backbone (IN PROGRESS):                                     *
+     *   check_ala_backbone:                                                   *
      *       So far, this function runs the `search_taxa` function in `galah-  *
      *       python` to get back a list of taxon in the backbone that matches  *
      *       what the user gave as input.                                      * 
@@ -1069,7 +1075,7 @@ class AlaQgisPluginDialog(QtWidgets.QDialog, FORM_CLASS):
         mint_doi = self.mint_doi()
 
         # get all possible filters for the query
-        taxonomy, filters, fields, doi = self.prepare_query(counts=False)
+        taxonomy, filters, spatial, fields, doi = self.prepare_query(counts=False)
 
         # check to see if user provided email and reason
         if taxonomy in ["provide_email", "provide_reason"]:
@@ -1083,6 +1089,7 @@ class AlaQgisPluginDialog(QtWidgets.QDialog, FORM_CLASS):
             # doi=doi,
             counts=True,
             group_by="taxonConceptID",
+            # add spatial here
         )
 
         # download the species list
@@ -1094,7 +1101,7 @@ class AlaQgisPluginDialog(QtWidgets.QDialog, FORM_CLASS):
         mint_doi = self.mint_doi()
 
         # get all possible filters for the query
-        taxonomy, filters, fields, doi = self.prepare_query(counts=False)
+        taxonomy, filters, spatial, fields, doi = self.prepare_query(counts=False)
 
         # check to see if user provided email and reason
         if taxonomy in ["provide_email", "provide_reason"]:
@@ -1106,6 +1113,7 @@ class AlaQgisPluginDialog(QtWidgets.QDialog, FORM_CLASS):
             filters=filters,
             # mint_doi=mint_doi,
             # doi=doi
+            # add spatial here
         )
 
         # check number of records the user will download; throw an error if there are
@@ -1124,7 +1132,12 @@ class AlaQgisPluginDialog(QtWidgets.QDialog, FORM_CLASS):
             return None
 
         # get the occurrence records (add other fields too)
-        occurrences = galah.atlas_occurrences(taxa=taxonomy, filters=filters, mint_doi=mint_doi, fields=fields, doi=doi)
+        occurrences = galah.atlas_occurrences(taxa=taxonomy, 
+                                              filters=filters, 
+                                              mint_doi=mint_doi, 
+                                              fields=fields, 
+                                              doi=doi) #,
+                                              # add spatial here
 
         # initialise the latitude and longitude (will change depending on different atlases)
         latitude = "decimalLatitude"

@@ -5,6 +5,7 @@ from qgis.PyQt.QtCore import QVariant
 Tick box values
 *****************/
 """
+# Authoritative lists of threatened species available in the ALA
 threatenedLists = {
     "ACT": "dr649",
     "EPBC": "dr656",
@@ -17,6 +18,7 @@ threatenedLists = {
     "WA": "dr2201",
 }
 
+# Authoritative lists of sensitive species available in the ALA
 sensitiveLists = {
     "ACT": "dr2627",
     "NSW": "dr487",
@@ -28,6 +30,7 @@ sensitiveLists = {
     "WA": "dr467",
 }
 
+# Authoritative lists of migratory species available in the ALA
 migratoryLists = {
     "Bonn": "dr18987",
     "CAMBA": "dr18989",
@@ -35,6 +38,7 @@ migratoryLists = {
     "ROKAMBA": "dr18990",
 }
 
+# Authoritative lists of non-native species available in the ALA
 nonNativeLists = {"NonNative All": "dr32213"}
 
 """
