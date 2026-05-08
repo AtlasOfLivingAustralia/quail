@@ -1,7 +1,7 @@
 #/***************************************************************************
 # AlaQgisPlugin
 #
-# This plugin is desiged to get ALA data into QGIS
+# This plugin is designed to get ALA data into QGIS
 #							 -------------------
 #		begin				: 2025-10-01
 #		git sha				: $Format:%H$

@@ -14,13 +14,13 @@ __copyright__ = "Copyright 2025, Atlas of Living Australia"
 
 import unittest
 
-from qgis.testing import mocked, start_app, unittest
+from alaQgisPlugin_dialog import AlaQgisPluginDialog
 from qgis.PyQt.QtGui import QDialog, QDialogButtonBox
+from qgis.testing import mocked, start_app, unittest
 from utilities import get_qgis_app
 
-from alaQgisPlugin_dialog import AlaQgisPluginDialog
-
 start_app()
+
 
 class AlaQgisPluginDialogTest(unittest.TestCase):
     """Test dialog works."""
@@ -37,7 +37,7 @@ class AlaQgisPluginDialogTest(unittest.TestCase):
 
     def test_mint_doi(self):
         """Test whether or not you get True when you tick the DOI button"""
-        checkBox = self.iface.createDoiCheckBox() # really not sure about this
+        checkBox = self.iface.createDoiCheckBox()  # really not sure about this
         checkBox.click()
         result = AlaQgisPluginDialog.mint_doi.result()
         self.assertEqual(result, True)

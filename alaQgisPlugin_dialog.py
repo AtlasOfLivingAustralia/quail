@@ -1,16 +1,22 @@
 import os
+from datetime import datetime
 
 import galah
-from qgis.PyQt import QtWidgets, uic
+import pandas as pd
+from qgis.core import QgsFeature, QgsField, QgsGeometry, QgsPointXY, QgsProject, QgsVectorLayer
+from qgis.gui import QgsCheckableComboBox
+from qgis.PyQt import QtCore, QtWidgets, uic
 from qgis.PyQt.QtCore import Qt
-from qgis.PyQt.QtWidgets import QMessageBox,QDialog
-from datetime import datetime
+from qgis.PyQt.QtWidgets import QComboBox, QDialog, QLabel, QMessageBox, QPushButton
+from qgis.utils import iface
+
+from .vocab import attributes_dict, migratoryLists, nonNativeLists, sensitiveLists, threatenedLists
 
 # This loads your .ui file so that PyQt can populate your plugin with the elements from Qt Designer
 FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), "alaQgisPlugin_dialog_base.ui"))
 
-# Set default combo box
-COMBOBOX_ALL_LABEL = "-- All --"
+# Set default combo box for none
+COMBOBOX_NONE_LABEL = "-- None --"
 
 
 class AlaQgisPluginDialog(QtWidgets.QDialog, FORM_CLASS):
@@ -39,7 +45,8 @@ class AlaQgisPluginDialog(QtWidgets.QDialog, FORM_CLASS):
 
     def __init__(self, parent=None):
         """
-        Initialise the plugin
+        Initialise the plugin, populate known values and link buttons to functions they
+        execute upon click.
         """
         super(AlaQgisPluginDialog, self).__init__(parent)
         # Set up the user interface from Designer through FORM_CLASS.
@@ -50,19 +57,17 @@ class AlaQgisPluginDialog(QtWidgets.QDialog, FORM_CLASS):
         self.setupUi(self)
 
         # populate predefined values
+        self._populate_atlases()
         self._populate_reasons()
         self._populate_data_profiles()
 
-        # # test this
-        # self.startDateEdit.setDate(datetime(1752,9,14))
-        # self.endDateEdit.setDate(datetime(1752,9,14))
-
         # define the actions clicking on these buttons will run
-        self.checkAlaBackbonePushButton.clicked.connect(self.check_ala_backbone) 
+        self.checkAlaBackbonePushButton.clicked.connect(self.check_ala_backbone)
         self.checkNumOccurrences.clicked.connect(self.check_num_occurrences)
         self.occDownload.clicked.connect(self.download_occurrences)
         self.speciesListCountsStatuses.clicked.connect(self.get_species_list_counts_statuses)
         self.uploadSpeciesListPushButton.clicked.connect(self.upload_species_list)
+        self.updateLayersPushButton.clicked.connect(self.display_layers_from_UI)
 
     """
     /***************************************************************************
@@ -101,16 +106,31 @@ class AlaQgisPluginDialog(QtWidgets.QDialog, FORM_CLASS):
      Combo box values
      *****************/
     """
+    # get all atlases available
+    atlases = galah.show_all(atlases=True)
+
+    # initialise atlas names dict
+    atlasNames = {}
+
+    # populate the atlas names
+    for i, row in atlases.iterrows():
+        if row["atlas"] == "Global":
+            atlasNames["GBIF"] = row["atlas"]
+        elif row["atlas"] == "Kew":
+            atlasNames["Kew Gardens Data Portal"] = row["atlas"]
+        else:
+            atlasNames[row["atlas"]] = row["atlas"]
+
     # get ALA profiles
     profiles = galah.show_all(profiles=True)
 
     # initialise data profiles dict
     dataProfiles = {
-        COMBOBOX_ALL_LABEL: None,
+        COMBOBOX_NONE_LABEL: None,
     }
 
     # add data profile values to dict
-    for i,row in profiles.iterrows():
+    for i, row in profiles.iterrows():
         dataProfiles[row["name"]] = row["shortName"]
 
     # get reasons in ALA
@@ -118,49 +138,16 @@ class AlaQgisPluginDialog(QtWidgets.QDialog, FORM_CLASS):
 
     # initialise reasons dict
     reasons = {
-        COMBOBOX_ALL_LABEL: None,
+        COMBOBOX_NONE_LABEL: None,
     }
 
     # add reasons to dict
-    for i,row in rs.iterrows():
+    for i, row in rs.iterrows():
         reasons[row["name"]] = row["id"]
 
-    """
-    /*****************
-     Tick box values
-     *****************/
-    """
-    threatenedLists = {
-        "ACT": "dr649",
-        "EPBC": "dr656",
-        "NSW": "dr650",
-        "NT": "dr651",
-        "QLD": "dr652",
-        "SA": "dr653",
-        "TAS": "dr654",
-        "VIC": "dr655",
-        "WA": "dr2201",
-    }
-
-    sensitiveLists = {
-        "ACT": "dr2627",
-        "NSW": "dr487",
-        "NT": "dr492",
-        "QLD": "dr493",
-        "SA": "dr884",
-        "TAS": "dr491",
-        "VIC": "dr490",
-        "WA": "dr467",
-    }
-
-    migratoryLists = {
-        "Bonn": "dr18987",
-        "CAMBA": "dr18989",
-        "JAMBA": "dr18988",
-        "ROKAMBA": "dr18990",
-    }
-
-    nonNativeLists = {"NonNative All": "dr32213"}
+    # add columns for getting and displaying data
+    taxonomicColumns = {}
+    spatialColumns = {}
 
     """
     /***************************************************************************
@@ -178,6 +165,10 @@ class AlaQgisPluginDialog(QtWidgets.QDialog, FORM_CLASS):
      *                                                                         *
      ***************************************************************************/
     """
+
+    def _populate_atlases(self):
+        vals = list(self.atlasNames.keys())
+        self.atlasesComboBox.addItems(sorted(vals))
 
     def _populate_data_profiles(self):
         vals = list(self.dataProfiles.keys())
@@ -208,37 +199,45 @@ class AlaQgisPluginDialog(QtWidgets.QDialog, FORM_CLASS):
      *                                                                         *
      ***************************************************************************/
     """
-    
-    def show_info_messagebox(self,text=None,title=None):
+
+    def show_info_messagebox(self, text=None, title=None):
+
+        # initiate message box
         msg = QMessageBox()
+
+        # set information and buttons in the message box
         msg.setIcon(QMessageBox.Icon.Information)
         msg.setText(text)
         msg.setWindowTitle(title)
         msg.setStandardButtons(QMessageBox.StandardButton.Ok | QMessageBox.StandardButton.Cancel)
+
+        # show message box
         retval = msg.exec()
 
+    def show_warning_messagebox(self, title=None, text=None):
 
-    def show_warning_messagebox(self,title=None,text=None):
+        # initiate message box
         msg = QMessageBox()
+
+        # set information and buttons in the message box
         msg.setIcon(QMessageBox.Icon.Warning)
         msg.setText(text)
         msg.setWindowTitle(title)
         msg.setStandardButtons(QMessageBox.StandardButton.Ok | QMessageBox.StandardButton.Cancel)
+
+        # show message box
         retval = msg.exec()
 
+    def show_table_dialogbox(self, table=None, title=None):
 
-    def show_table_dialogbox(self,table=None,title=None):
-        """
-        /* Work in progress */
-        """
         # create the window and set the title
         msg = QDialog()
         msg.setWindowTitle(title)
-        
+
         # initialise the table widget
         msg.tableWidget = QtWidgets.QTableWidget(msg)
-        
-        # try this
+
+        # set scroll bars off so the table will autofill; maybe remove this
         msg.tableWidget.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         msg.tableWidget.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
 
@@ -251,25 +250,110 @@ class AlaQgisPluginDialog(QtWidgets.QDialog, FORM_CLASS):
         msg.tableWidget.setColumnCount(nb_col)
 
         # add the data to the table
-        for row in range (nb_row):
+        for row in range(nb_row):
             for col in range(nb_col):
-                item = QtWidgets.QTableWidgetItem(str(table.iloc[row,col])) # was [row]
-                msg.tableWidget.setItem(row,col,item)
+                item = QtWidgets.QTableWidgetItem(str(table.iloc[row, col]))
+                msg.tableWidget.setItem(row, col, item)
 
         # add column names
-        msg.tableWidget.setHorizontalHeaderLabels([u'{}'.format(x) for x in table.columns]) #list(table.columns)) #[u'Column1',u'Column2'])
-        
+        msg.tableWidget.setHorizontalHeaderLabels(["{}".format(x) for x in table.columns])
+
         # resize table so user can see the table
         msg.tableWidget.resizeRowsToContents()
         msg.tableWidget.resizeColumnsToContents()
 
         # resize the dialog box to accommodate the table
         dialogWidth = msg.tableWidget.horizontalHeader().length() + 24
-        dialogHeight= msg.tableWidget.verticalHeader().length() + 24
-        msg.setFixedSize(dialogWidth, dialogHeight)
+        dialogHeight = msg.tableWidget.verticalHeader().length() + 24
+        msg.tableWidget.setFixedSize(dialogWidth, dialogHeight)
 
-        # msg.setStandardButtons(QDialog.StandardButton.Ok | QDialog.StandardButton.Cancel)
+        # show the window
         retval = msg.exec()
+
+    def show_spatial_dialogbox(self, title=None, selection_dict=None):
+
+        # set up the dialog box
+        msg = QDialog()
+        msg.resize(300, 500)
+        msg.setWindowTitle(title)
+
+        # set offset for spacing
+        offset = 30
+
+        # loop over keys in selection dictionary
+        for i, key in enumerate(selection_dict.keys()):
+
+            # create label
+            label = QLabel(key, msg)
+            label.setObjectName(key)
+            label.move(offset, i * offset + offset + 5)  # +2 to offset?
+
+            # create a combo box
+            comboBox = QComboBox(msg)
+            comboBox.setObjectName("{}ComboBox".format(key))
+            comboBox.move(100 + offset, i * offset + offset)
+            comboBox.addItems(sorted(selection_dict[key]))
+
+        # create the Set Columns button and Cancel buttons, move them into the correct place, and link them to the
+        # relevant functions
+        msg.setButton = QPushButton("Set Columns", msg)
+        msg.setButton.move(50, 400)
+        msg.setButton.clicked.connect(
+            lambda: self.get_selections_dialogBox(dialogBox=msg)
+        )
+        msg.cancelButton = QPushButton("Cancel", msg)
+        msg.cancelButton.move(150, 400)
+        msg.cancelButton.clicked.connect(
+            lambda: self.close_dialogBox(dialogBox=msg, dialogue="Closed")
+        )
+
+        # execute the window
+        retval = msg.exec()
+
+    def get_selections_dialogBox(self, dialogBox=None):
+
+        # separate the combo boxes and labels
+        comboboxes = [x for x in dialogBox.children() if type(x) is QComboBox]
+        labels = [x for x in dialogBox.children() if type(x) is QLabel]
+
+        # initialise empty dictionary for storing information
+        columns = {}
+
+        # go through all the comboboxes to see which ones the user selected
+        for i, (lb, cb) in enumerate(zip(labels, comboboxes)):
+            if cb.currentText() != COMBOBOX_NONE_LABEL:
+                columns[lb.objectName()] = cb.currentText()
+
+        # check whether or not we are looking for taxonomic columns or spatial columns - assign
+        # dictionary to correct object
+        self.spatialColumns = columns
+
+        # close the dialog box
+        self.close_dialogBox(dialogBox=dialogBox, dialogue="got selections")
+
+    def close_dialogBox(self, dialogBox=None, dialogue=None):
+
+        # try this
+        if dialogue == "Closed":
+            self.spatialColumns = {dialogue: dialogue}
+        dialogBox.close()
+
+    def get_taxon_column_names(self):
+
+        comboboxes = [x for x in self.Taxonomy.children() if type(x) is QComboBox]
+        labels = [x for x in self.Taxonomy.children() if type(x) is QLabel]
+
+        # initialise empty dictionary for storing information
+        columns = {}
+
+        # go through all the comboboxes to see which ones the user selected
+        for i, (lb, cb) in enumerate(zip(labels, comboboxes)):
+            if cb.currentText() != COMBOBOX_NONE_LABEL:
+                columns[lb.objectName()] = cb.currentText()
+
+        # check whether or not we are looking for taxonomic columns or spatial columns - assign
+        # dictionary to correct object
+        self.taxonomicColumns = columns
 
     """
     /***************************************************************************
@@ -299,7 +383,7 @@ class AlaQgisPluginDialog(QtWidgets.QDialog, FORM_CLASS):
      *   parse_reason:                                                         *
      *       get variable user has chosen in data profile combo box            *
      *   parse_taxonomy:                                                       *
-     *       **to write**                                                      *
+     *       parses taxonomic names from either a text box or uploaded csv     *
      *   set_data_fields:                                                      *
      *       tells galah-python what fields to download from Python.  Checks   *
      *       whether or not user has an authoritative list in their filters    *
@@ -308,70 +392,68 @@ class AlaQgisPluginDialog(QtWidgets.QDialog, FORM_CLASS):
      ***************************************************************************/
     """
 
+    # check completed
     def mint_doi(self):
-        """
-        /* Check to see if it is working */
-        """
         if self.createDoiCheckBox.isChecked():
             return True
 
     # check completed
     def parse_authoritative_lists(self):
-        
+
         # initialise lists variable
         lists = []
 
         # Threatened Lists
         if self.actThreatCheckBox.isChecked():
-            lists.append(self.threatenedLists["ACT"])
+            lists.append(threatenedLists["ACT"])
         if self.epbcThreatCheckBox.isChecked():
-            lists.append(self.threatenedLists["EPBC"])
+            lists.append(threatenedLists["EPBC"])
         if self.nswThreatCheckBox.isChecked():
-            lists.append(self.threatenedLists["NSW"])
+            lists.append(threatenedLists["NSW"])
         if self.ntThreatCheckBox.isChecked():
-            lists.append(self.threatenedLists["NT"])
+            lists.append(threatenedLists["NT"])
         if self.qldThreatCheckBox.isChecked():
-            lists.append(self.threatenedLists["QLD"])
+            lists.append(threatenedLists["QLD"])
         if self.saThreatCheckBox.isChecked():
-            lists.append(self.threatenedLists["SA"])
+            lists.append(threatenedLists["SA"])
         if self.tasThreatCheckBox.isChecked():
-            lists.append(self.threatenedLists["TAS"])
+            lists.append(threatenedLists["TAS"])
         if self.vicThreatCheckBox.isChecked():
-            lists.append(self.threatenedLists["VIC"])
+            lists.append(threatenedLists["VIC"])
         if self.waThreatCheckBox.isChecked():
-            lists.append(self.threatenedLists["WA"])
+            lists.append(threatenedLists["WA"])
 
         # Sensitive Lists
         if self.actSensCheckBox.isChecked():
-            lists.append(self.sensitiveLists["ACT"])
+            lists.append(sensitiveLists["ACT"])
         if self.nswSensCheckBox.isChecked():
-            lists.append(self.sensitiveLists["NSW"])
+            lists.append(sensitiveLists["NSW"])
         if self.ntSensCheckBox.isChecked():
-            lists.append(self.sensitiveLists["NT"])
+            lists.append(sensitiveLists["NT"])
         if self.qldSensCheckBox.isChecked():
-            lists.append(self.sensitiveLists["QLD"])
+            lists.append(sensitiveLists["QLD"])
         if self.saSensCheckBox.isChecked():
-            lists.append(self.sensitiveLists["SA"])
+            lists.append(sensitiveLists["SA"])
         if self.tasSensCheckBox.isChecked():
-            lists.append(self.sensitiveLists["TAS"])
+            lists.append(sensitiveLists["TAS"])
         if self.vicSensCheckBox.isChecked():
-            lists.append(self.sensitiveLists["VIC"])
+            lists.append(sensitiveLists["VIC"])
         if self.waSensCheckBox.isChecked():
-            lists.append(self.sensitiveLists["WA"])
+            lists.append(sensitiveLists["WA"])
 
         # Migratory Lists
         if self.bonnMigratoryCheckBox.isChecked():
-            lists.append(self.migratoryLists["Bonn"])
+            lists.append(migratoryLists["Bonn"])
         if self.cambaCheckBox.isChecked():
-            lists.append(self.migratoryLists["CAMBA"])
+            lists.append(migratoryLists["CAMBA"])
         if self.jambaCheckBox.isChecked():
-            lists.append(self.migratoryLists["JAMBA"])
+            lists.append(migratoryLists["JAMBA"])
         if self.rokambaCheckBox.isChecked():
-            lists.append(self.migratoryLists["ROKAMBA"])
+            lists.append(migratoryLists["ROKAMBA"])
 
         # Non-Native Lists
         if self.nonNativeCheckBox.isChecked():
-            lists.append(self.nonNativeLists["NonNative All"])
+            lists.append(nonNativeLists["NonNative All"])
 
         # create appropriate filters for this and return as string
         if len(lists) > 0:
@@ -420,44 +502,42 @@ class AlaQgisPluginDialog(QtWidgets.QDialog, FORM_CLASS):
 
     # check completed
     def parse_date(self):
+
         # get the dates and convert them to datetime
         startDate = self.startDateCalendarWidget.selectedDate()
         endDate = self.endDateCalendarWidget.selectedDate()
-        d,m,y = startDate.getDate()
+        d, m, y = startDate.getDate()
 
         # first, check for default values
         if startDate == endDate:
             if startDate == datetime.now().date():
-                return None,None
-            d,m,y = startDate.getDate()
-            return 'eventDate={}'.format(datetime(d,m,y).isoformat()),None
+                return None, None
+            d, m, y = startDate.getDate()
+            return "eventDate={}".format(datetime(d, m, y).isoformat()), None
 
         # then, check if someone either swapped the dates or put the wrong ones in
         elif startDate > endDate:
             self.show_warning_messagebox(text="Your start date is further in the future than your end date.")
-            # throw error here?
 
         # otherwise, we have a valid datetime window
         else:
             if endDate == datetime.now().date():
-                d,m,y = startDate.getDate()
-                return 'eventDate>={}Z'.format(datetime(d,m,y).isoformat()),None
+                d, m, y = startDate.getDate()
+                return "eventDate>={}Z".format(datetime(d, m, y).isoformat()), None
             else:
-                d1,m1,y1 = startDate.getDate()
-                d2,m2,y2 = endDate.getDate()
-                startDateString = 'eventDate>={}Z'.format(datetime(d1,m1,y1).isoformat())
-                endDateString = 'eventDate=<{}Z'.format(datetime(d2,m2,y2).isoformat())
-                return startDateString,endDateString
-        
-        # return None as the deafult
-        return None,None
+                d1, m1, y1 = startDate.getDate()
+                d2, m2, y2 = endDate.getDate()
+                startDateString = "eventDate>={}Z".format(datetime(d1, m1, y1).isoformat())
+                endDateString = "eventDate=<{}Z".format(datetime(d2, m2, y2).isoformat())
+                return startDateString, endDateString
 
+        # return None as the default
+        return None, None
+
+    # check completed
     def parse_doi_as_query(self):
-        """
-        /* Check to see if it is working */
-        """
         doi = self.doiLineEdit.text()
-        if doi not in [None,'']:
+        if doi not in [None, ""]:
             return doi
         return None
 
@@ -489,24 +569,192 @@ class AlaQgisPluginDialog(QtWidgets.QDialog, FORM_CLASS):
             if self.reasonsComboBox.currentText() == r:
                 return self.reasons[r]
 
+    # check completed
     def parse_taxonomy(self):
-        """
-        /* Check to see if it is working */
-        """
-        if self.speciesLineEdit.text() not in [None,'']:
-            return self.speciesLineEdit.text().split(',')
-        return None
+
+        # create potential taxon selections for people to
+        taxon_selections = [
+            "scientificName",
+            "kingdom",
+            "phylum",
+            "class",
+            "order",
+            "family",
+            "genus",
+            "vernacularName",
+            "identifiers",
+            "specific epithet",
+        ]
+
+        # initialise dictionary to make sure we cover all possible taxonomy cases
+        taxonomy_dict = {
+            "taxa": None,
+            "identifiers": None,
+            "specific_epithet": None,
+            "scientific_name": None,
+        }
+
+        # check for species one might manually put in
+        if self.speciesLineEdit.text() not in [None, ""]:
+            taxonomy_dict["taxa"] = self.speciesLineEdit.text().split(";")  # was ,
+
+        # make this an elif for now
+        elif hasattr(self, "speciesFileLineEdit"):
+
+            # get all objects on the Taxonomy tab
+            taxon_children = [x.objectName() for x in self.Taxonomy.children()]
             
-    def set_data_fields(self,auth_lists=False,EPBC=False):
-        """
-        /* Check to see if it is working */
-        """
-        fields = ["basic","dataProviderName","dataResourceName"]
+            # check to see if this is not None and the columns have been chosen
+            if self.speciesFileLineEdit.text() not in [None, ""] and "kingdom" in taxon_children:
+
+                # get the file name and read in the data
+                file_name = self.speciesFileLineEdit.text()
+                if "csv" in file_name:
+                    data = pd.read_csv(file_name)
+                else:
+                    self.show_warning_messagebox("This file needs to be a csv.")
+
+                # get taxonomic columns from UI
+                self.get_taxon_column_names()
+
+                # check if taxonomic columns were set - if they were, return selected taxonomic data;
+                # else, return a value to let the plugin know to end functions
+                if self.taxonomicColumns:
+
+                    # if "Closed" isn't in the column names, need to get actual column names
+                    if "Closed" not in self.taxonomicColumns.keys():
+
+                        # rename the columns in the data to the Darwin Core names we need for querying
+                        data_rename = data.rename(columns=self.taxonomicColumns)
+
+                        # check to see which columns have been renamed
+                        columns_in_data_rename = list(set(data_rename.columns).intersection(set(taxon_selections)))
+
+                        # get information from the data as a dictionary of lists
+                        taxon_info = data_rename[columns_in_data_rename].to_dict(orient="list")
+
+                        # decide whether or not user should use the identifiers, specific_epithet, scientific_name
+                        # or taxa argument of search_taxa
+                        if "identifiers" in taxon_info.keys() and len(taxon_info.keys()) == 1:
+                            taxonomy_dict["identifiers"] = taxon_info["identifiers"]
+                        elif "specificEpithet" in taxon_info.keys():
+                            taxonomy_dict["specificEpithet"] = taxon_info
+                        elif "scientificName" in taxon_info.keys() and len(taxon_info.keys()) > 1:
+                            taxonomy_dict["scientificName"] = taxon_info
+                        else:
+                            taxonomy_dict["taxa"] = taxon_info["scientificName"]
+
+                        # return dictionary
+                        return taxonomy_dict
+
+                    # return "Closed" if this appears in the dictionary, as the user has closed the previous window
+                    return "Closed"
+                else:
+                    self.show_warning_messagebox(text="Please select columns for your taxonomic arguments.")
+                    return "No columns"
+            
+            else:
+
+                self.show_warning_messagebox("You need to use the Select Taxonomic Columns button to select what columns you use from your file.")
+                return "Closed"
+
+        # return the taxonomic dictionary
+        return taxonomy_dict
+
+    # check completed
+    def set_data_fields(self, auth_lists=False, EPBC=False):
+        fields = ["basic", "dataProviderName"]
         if auth_lists:
             fields += ["stateConservation"]
         if EPBC:
             fields += ["countryConservation"]
         return fields
+
+    """
+    /***************************************************************************
+     Spatial Filters
+     ***************************************************************************/
+
+    /***************************************************************************
+     * all of these functions will get spatial information from the UI.        *
+     *                                                                         *
+     *   display_layers_from_UI:                                               *
+     *       displays all layers currently in the UI in [a checkable           *
+     *.      searchable combo box????]                                         *
+     *   get_layers_from_UI:                                                   *
+     *       parse the filters from the UI and format them for galah-python    *
+     *   parse_filters:                                                        *
+     *       parse the filters from the UI and format them for galah-python    *
+     *   parse_filters:                                                        *
+     *       parse the filters from the UI and format them for galah-python    *
+     *                                                                         *
+     ***************************************************************************/
+    """
+
+    def display_layers_from_UI(self):
+
+        # gets layers available from UI
+        layers_from_UI = self.get_layer_info_from_UI()
+
+        # get which data column we will use for naming
+        self.show_spatial_dialogbox(selection_dict=layers_from_UI)
+
+        # set offset
+        offset = 275
+
+        # now, get all possible shapes to select from
+        if self.spatialColumns:
+
+            # get layers
+            layers = iface.mapCanvas().layers()
+
+            # loop over layers
+            for i, l in enumerate(layers):
+
+                if any(x in l.name() for x in self.spatialColumns.keys()):
+
+                    # get features and initialise lists
+                    # top_feature_list = ["None Selected", "Select All"]
+                    feature_list = []
+                    features = list(l.getFeatures())
+
+                    # get names of all features
+                    for f in features:
+                        feature_list.append("{}".format(f.attributeMap()[self.spatialColumns[l.name()[:12]]]))
+
+                    # create label name for the layer
+                    label = QLabel(l.name()[:12], self.Spatial)
+                    label.setObjectName(l.name()[:12])
+                    label.move(20 + i * offset, 80)
+                    label.show()  # +2 to offset?
+
+                    # create a combo box for the layer
+                    checkComboBox = QgsCheckableComboBox(self.Spatial)
+                    checkComboBox.setObjectName("checkComboBox")  # change this
+                    checkComboBox.move(20 + i * offset, 100)
+                    checkComboBox.addItem("None selected")
+                    checkComboBox.setItemCheckState(index=0, state=Qt.CheckState.Checked)
+                    checkComboBox.addItems(["Select All"] + sorted(feature_list))
+                    checkComboBox.show()
+
+    def get_layer_info_from_UI(self):
+
+        # get layers on the canvas
+        layers = iface.mapCanvas().layers()
+
+        # initalise dictionary of layers and potential column values
+        layer_attr = {}
+
+        # loop over all layers
+        for l in layers:
+            if l.name() != "OpenStreetMap":
+                temp_list = [x.name() for x in list(l.fields())]
+                layer_attr[l.name()[:12]] = temp_list
+
+        return layer_attr
+
+    def parse_spatial(self):
+        n = 1
 
     """
     /***************************************************************************
@@ -522,7 +770,6 @@ class AlaQgisPluginDialog(QtWidgets.QDialog, FORM_CLASS):
      ***************************************************************************/
     """
 
-    # check completed
     def parse_filters(self):
 
         # initialise filters list
@@ -530,19 +777,19 @@ class AlaQgisPluginDialog(QtWidgets.QDialog, FORM_CLASS):
 
         # get all types of filters from the UI
         authoritative_lists = self.parse_authoritative_lists()
-        date1,date2 = self.parse_date()
+        date1, date2 = self.parse_date()
         bor = self.parse_basis_of_record()
         pa = self.parse_present_absent()
 
         # loop over all filters to see which ones are present
-        for fs in [authoritative_lists,bor,pa,date1,date2]:
+        for fs in [authoritative_lists, bor, pa, date1, date2]:
             if fs is not None:
                 filters.append(fs)
 
         # if there are no filters, return None
         if len(filters) == 0:
             return None
-        
+
         # return whatever filters were present in the UI
         return filters
 
@@ -555,29 +802,117 @@ class AlaQgisPluginDialog(QtWidgets.QDialog, FORM_CLASS):
      * all of these functions will get input data from the UI.                 *
      *                                                                         *
      *   upload_species_list:                                                  *
-     *       set default combo box values from variable `dataProfiles`         *
+     *       Uploads a species list from the users' computer to the UI.        *
+     *   download_species_list:                                                *
+     *       Downloads a species list from atlas_species() to a file.          *
      *                                                                         *
      ***************************************************************************/
     """
 
     def upload_species_list(self):
-        """
-        TODO: test that this works
-        """
-        dialog = QtWidgets.QFileDialog()
-        dialog.setFileMode(QtWidgets.QFileDialog.AnyFile)
-        dialog.setFilter(QtWidgets.QDir.Files)
 
-        if dialog.exec_():
+        # initialise the dialog
+        dialog = QtWidgets.QFileDialog()
+        dialog.setFileMode(QtWidgets.QFileDialog.FileMode.ExistingFiles)
+
+        # if user chooses this option, look through the files and
+        if dialog.exec():
+
+            # get the selected file name
             file_name = dialog.selectedFiles()
 
+            # check if user is loading csv file - if it isn't CSV, then throw error
             if file_name[0].endswith(".csv"):
-                with open(file_name[0], "r") as f:
-                    data = f.read()
-                    self.textEditor.setPlainText(data)
-                    f.close()
+                _translate = QtCore.QCoreApplication.translate
+                self.speciesFileLineEdit = QtWidgets.QLineEdit(self.Taxonomy)
+                self.speciesFileLineEdit.setGeometry(QtCore.QRect(490, 85, 241, 21))  # was 160, 135
+                self.speciesFileLineEdit.setObjectName("speciesFileLineEdit")
+                self.speciesFileLineEdit.setText(_translate("AlaQgisPluginDialogBase", file_name[0]))
+                self.speciesFileLineEdit.show()
             else:
-                pass
+                self.show_info_messagebox("Please provide a CSV file.")
+
+        self.show_taxonomic_columns()
+
+    def download_species_list(self, species_list=None):
+
+        # get the file name
+        name, _ = QtWidgets.QFileDialog.getSaveFileName(self, "Save File")
+
+        # check for allowed extensions; throw error if extension not correct
+        if "csv" in name:
+            species_list.to_csv(name, index=False)
+        elif any(x in name for x in ["xls", "xlsx"]):
+            species_list.to_excel(name)
+        else:
+            self.show_warning_messagebox(text="You can only save a CSV or an Excel spreadsheet.")
+
+    def show_taxonomic_columns(self):
+
+        taxon_selections = [
+            "scientificName",
+            "kingdom",
+            "phylum",
+            "class",
+            "order",
+            "family",
+            "genus",
+            "vernacularName",
+            "identifiers",
+            "specific epithet",
+        ]
+        
+        # make this an elif for now
+        if hasattr(self, "speciesFileLineEdit"):
+
+            # check to see if this is not None
+            if self.speciesFileLineEdit.text() not in [None, ""]:
+
+                # get the file name and read in the data
+                file_name = self.speciesFileLineEdit.text()
+                if "csv" in file_name:
+                    data = pd.read_csv(file_name)
+                else:
+                    self.show_warning_messagebox("This file needs to be a csv.")
+
+                # create the selections dictionary to pass to the show selections dialog,
+                # including a default of None
+                selection_dict = {x: [COMBOBOX_NONE_LABEL] + list(data.columns) for x in taxon_selections}
+
+                # check if taxonomic columns were set - if they were, return selected taxonomic data;
+                offset1 = 250
+                offset2 = 30
+                i_offset = 0
+                j=0
+
+                # if "Closed" isn't in the column names, need to get actual column names  
+                for i,key in enumerate(taxon_selections):
+
+                    # add them to the UI
+                    # create label name for the layer
+                    label = QLabel(key, self.Taxonomy)
+                    label.setObjectName(key)
+                    label.move(20 + (i - i_offset) * offset1, 180 + j*offset2)
+                    label.show()  # +2 to offset?
+
+                    # create a combo box for the layer
+                    comboBox = QComboBox(self.Taxonomy)
+                    comboBox.setObjectName("{}ComboBox".format(key))  # change this
+                    comboBox.move(120 + (i - i_offset) * offset1, 179 + j*offset2)
+                    dwc_terms = list(set(selection_dict[key]).intersection(set(taxon_selections)))
+                    if len(dwc_terms) > 0 and label.objectName() in dwc_terms:
+                        selection_dict[key].remove(label.objectName())
+                        comboBox.addItems(dwc_terms + sorted(selection_dict[key]))
+                    else:
+                        comboBox.addItems(sorted(selection_dict[key]))
+                    comboBox.show()
+
+                    if i in [2,5,8,11]:
+                        j += 1
+                        i_offset += 3
+
+        else:
+            self.show_warning_messagebox("You need to provide a file to choose columns.")
 
     """
     /***************************************************************************
@@ -587,46 +922,79 @@ class AlaQgisPluginDialog(QtWidgets.QDialog, FORM_CLASS):
     /***************************************************************************
      * all of these functions will get input data from the UI.                 *
      *                                                                         *
-     *   check_ala_backbone:                                                   *
-     *       X        *
-     *   prepare_query:                                             *
-     *       X    *
-     *   check_num_occurrences:                                          *
-     *       X      *
-     *   get_species_list_count_statuses:                                                    *
-     *       X              *
-     *   download_occurrences: *
-     *       X*
+     *   check_ala_backbone (IN PROGRESS):                                     *
+     *       So far, this function runs the `search_taxa` function in `galah-  *
+     *       python` to get back a list of taxon in the backbone that matches  *
+     *       what the user gave as input.                                      * 
+     *   prepare_query (IN PROGRESS):                                          *
+     *       So far, this function gets the following information from the UI  *
+     *       and places it in the appropriate place for the query:             *
+     *             - email                                                     *
+     *             - reason                                                    *
+     *             - data_profile                                              *
+     *             - taxonomy                                                  *
+     *             - filters                                                   *
+     *             - doi                                                       *
+     *             - data fields                                               *
+     *   check_num_occurrences:                                                *
+     *       Checks the number of records that will be returned by the users'  *
+     *       query.                                                            *
+     *   get_species_list_count_statuses (IN PROGRESS):                        *
+     *       So far, this function will get a list of species with the counts  *
+     *       and download the csv (this last part will hopefully work soon)    *
+     *   download_occurrences (IN PROGRESS):                                   *
+     *       So far, this will run a check on how many records the user wants  *
+     *       to download; if it is more than 5mil, don't allow them to down-   *
+     *       load the records.  After the query passes that check, download    *
+     *       occurrence records and load them as a vector layer into QGIS      *  
      *                                                                         *
      ***************************************************************************/
     """
 
     def check_ala_backbone(self):
-        """
-        /* Check to see if it is working */
-        """
-        taxonomy_list = self.parse_taxonomy()
-        taxa_table = galah.search_taxa(taxa=taxonomy_list)
-        self.show_table_dialogbox(table=taxa_table,title="testing") 
 
-    def prepare_query(self,counts=False):
+        # get the taxon information
+        taxon_info = self.parse_taxonomy()
+
+        # Check for the following:
+        # 1. If the taxon_info is a string and is set to "Closed", finish the function here
+        # 2. Otherwise, run search_taxa with our taxon info
+        if taxon_info in ["Closed", "No columns"]:
+            return None
+        else:
+            taxa_table = galah.search_taxa(
+                taxa=taxon_info["taxa"],
+                identifiers=taxon_info["identifiers"],
+                scientific_name=taxon_info["scientific_name"],
+                specific_epithet=taxon_info["specific_epithet"],
+            )
+
+        # Show the user the taxa table
+        self.show_table_dialogbox(table=taxa_table, title="Results From Searching Taxonomic Backbone")
+
+    def prepare_query(self, counts=False):
 
         # get information for the configuration options
-        email = self.parse_email() # email parsed correctly
-        reason = self.parse_reason() # reason parsed correctly
-        data_profile = self.parse_data_profile() # data profile parsed correctly
-        
+        email = self.parse_email()  # email parsed correctly
+        reason = self.parse_reason()  # reason parsed correctly
+        data_profile = self.parse_data_profile()  # data profile parsed correctly
+
         # check that email and reason are ticked; if not, throw error
         if not counts:
 
-            # TODO: enable button ONLY IF both are present OR popup
-            if email is None:
-                self.show_warning_messagebox(text="You need to provide an email to download occurrences",title="Warning")
-                return None
+            # if no email is present, show user error message and exit
+            if email in [None, ""]:
+                self.show_warning_messagebox(
+                    text="You need to provide an email to download occurrences", title="Warning"
+                )
+                return "provide_email"
 
-            if reason is None:
-                self.show_warning_messagebox(text="You need to provide a reason to download occurrences",title="Warning")
-                return None
+            # if no reason is present, show user error message and exit
+            if reason in [None, "", "-- All --"]:
+                self.show_warning_messagebox(
+                    text="You need to provide a reason to download occurrences", title="Warning"
+                )
+                return "provide_reason"
 
         # set the configuration options here
         galah.galah_config(authenticate=False, email=email, reason=reason, data_profile=data_profile)
@@ -636,45 +1004,64 @@ class AlaQgisPluginDialog(QtWidgets.QDialog, FORM_CLASS):
 
         # get other parameters
         filters = self.parse_filters()
-        self.show_info_messagebox(text=str(filters))
-        
+
+        # get the DOI, if any, from the DOI text box
+        doi = self.parse_doi_as_query()
+
+        # add any spatial queries
+        spatial = self.parse_spatial()
+
         # check for authoritative lists
-        auth_lists=False
-        EPBC=False
+        auth_lists = False
+        EPBC = False
 
         # get the data resource IDs of authoritative lists
-        auth_drs = list(self.threatenedLists.values()) + list(self.sensitiveLists.values()) + list(self.migratoryLists.values()) + list(self.nonNativeLists.values()) 
-        EPBC_value = self.threatenedLists['EPBC']
+        auth_drs = (
+            list(threatenedLists.values())
+            + list(sensitiveLists.values())
+            + list(migratoryLists.values())
+            + list(nonNativeLists.values())
+        )
+        EPBC_value = threatenedLists["EPBC"]
 
-        # check if any lists are part of the filter; if so, set EPBC and auth_lists to True, depending 
+        # check if any lists are part of the filter; if so, set EPBC and auth_lists to True, depending
         # on what values are set in the GUI
         if filters is not None:
             if any("species_list_uid" in f for f in filters):
                 list_filters = [f for f in filters if "species_list_uid" in f]
                 for lf in list_filters:
                     if EPBC_value in lf:
-                        EPBC=True
+                        EPBC = True
                     if any(ad in lf for ad in auth_drs):
-                        auth_lists=True
+                        auth_lists = True
 
         # set fields
-        fields = self.set_data_fields(auth_lists=auth_lists,EPBC=EPBC)
+        fields = self.set_data_fields(auth_lists=auth_lists, EPBC=EPBC)
 
         # return taxonomy, filters and fields
-        return taxonomy,filters,fields
+        return taxonomy, filters, spatial, doi, fields
 
     def check_num_occurrences(self):
 
         # get all potential filters
-        taxonomy,filters,fields = self.prepare_query(counts=True)
+        taxonomy, filters, spatial, doi, fields = self.prepare_query(counts=True)
 
         # get the number of records their query will return
-        counts = galah.atlas_counts(taxa=taxonomy,filters=filters)
+        counts = galah.atlas_counts(
+            taxa=taxonomy["taxa"],
+            # identifiers=taxonomy["identifiers"],
+            scientific_name=taxonomy["scientific_name"],
+            # specific_epithet=taxonomy["specific_epithet"],
+            filters=filters,
+            # add spatial here
+        )  # ,
+        # doi=doi)
 
+        # set the text for the message box
         text = "Your query will return {} records.".format(counts["totalRecords"][0])
 
         # show dialog box with number of counts
-        self.show_info_messagebox(text=text,title="Number of counts")
+        self.show_info_messagebox(text=text, title="Number of records")
 
     def get_species_list_counts_statuses(self):
 
@@ -682,17 +1069,24 @@ class AlaQgisPluginDialog(QtWidgets.QDialog, FORM_CLASS):
         mint_doi = self.mint_doi()
 
         # get all possible filters for the query
-        taxonomy,filters,fields = self.prepare_query()
+        taxonomy, filters, fields, doi = self.prepare_query(counts=False)
+
+        # check to see if user provided email and reason
+        if taxonomy in ["provide_email", "provide_reason"]:
+            return None
 
         # get the species list with counts and statuses (test this)
         species_list = galah.atlas_species(
             taxa=taxonomy,
             filters=filters,
             mint_doi=mint_doi,
-            fields=fields,
+            # doi=doi,
+            counts=True,
+            group_by="taxonConceptID",
         )
 
-        # TODO: add a way to get the csv into QGIS
+        # download the species list
+        self.download_species_list(species_list=species_list)
 
     def download_occurrences(self):
 
@@ -700,14 +1094,69 @@ class AlaQgisPluginDialog(QtWidgets.QDialog, FORM_CLASS):
         mint_doi = self.mint_doi()
 
         # get all possible filters for the query
-        taxonomy,filters,fields = self.prepare_query()
+        taxonomy, filters, fields, doi = self.prepare_query(counts=False)
 
-        # get the occurrence records (add other fields too)
-        occurrences = galah.atlas_occurrences(
+        # check to see if user provided email and reason
+        if taxonomy in ["provide_email", "provide_reason"]:
+            return None
+
+        # get number of records user will download
+        counts = galah.atlas_counts(
             taxa=taxonomy,
             filters=filters,
-            mint_doi=mint_doi,
-            fields=fields,
+            # mint_doi=mint_doi,
+            # doi=doi
         )
 
-        # TODO: add a way to get the csv into QGIS
+        # check number of records the user will download; throw an error if there are
+        # more than 5mil records to download
+        if int(counts["totalRecords"][0]) > 5000000:
+
+            # set the text for the message box
+            text = "You cannot download more than 5 million records at a time.  You have tried to download {} records.  Please filter your query further.".format(
+                counts["totalRecords"][0]
+            )
+
+            # show dialog box with number of counts
+            self.show_info_messagebox(text=text, title="Number of records")
+
+            # exit query
+            return None
+
+        # get the occurrence records (add other fields too)
+        occurrences = galah.atlas_occurrences(taxa=taxonomy, filters=filters, mint_doi=mint_doi, fields=fields, doi=doi)
+
+        # initialise the latitude and longitude (will change depending on different atlases)
+        latitude = "decimalLatitude"
+        longitude = "decimalLongitude"
+
+        # initialise layer
+        layer = QgsVectorLayer("Point?crs=EPSG:4326", "data", "memory")
+        provider = layer.dataProvider()
+
+        # create the attributes list from the column names (as these are the attributes)
+        attributes_list = list(occurrences.columns)
+
+        # Now, add fields that you will be getting from the data frame user has downloaded
+        # (attributes_dict is decliared in vocab.py)
+        for a in attributes_list:
+            if a not in attributes_dict.keys():
+                self.show_warning_messagebox("This field is not found in the attributes dictionary")
+                return None
+            provider.addAttributes([QgsField(a, attributes_dict[a])])
+        layer.updateFields()
+
+        # loop over all occurrences
+        for i, row in occurrences.iterrows():
+            f = QgsFeature()
+            point = QgsPointXY(row[longitude], row[latitude])
+            f.setGeometry(QgsGeometry.fromPointXY(point))
+            temp_attr = [row[x] for x in attributes_list]
+            f.setAttributes(temp_attr)
+            provider.addFeature(f)
+
+        # update the layer after all points have been added to it
+        layer.updateExtents()
+
+        # Add the layer to the project
+        QgsProject.instance().addMapLayer(layer)

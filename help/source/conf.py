@@ -16,6 +16,12 @@
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 # sys.path.insert(0, os.path.abspath('.'))
 
+# -- Project information -----------------------------------------------------
+# General information about the project.
+project = "AlaQgisPlugin"
+copyright = "2026, Atlas of Living Australia"
+author = "Atlas of Living Australia"
+
 # -- General configuration -----------------------------------------------------
 
 # If your documentation needs a minimal Sphinx version, state it here.
@@ -23,7 +29,15 @@
 
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = ["sphinx.ext.todo", "sphinx.ext.imgmath", "sphinx.ext.viewcode"]
+# extensions = ["sphinx.ext.todo", "sphinx.ext.imgmath", "sphinx.ext.viewcode"]
+extensions = [
+    "myst_parser",
+    # 'sphinx-prompt',
+    # 'sphinxcontrib.programoutput',
+    "sphinx_design",
+    "sphinx.ext.napoleon",
+    "sphinx.ext.autosectionlabel",
+]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]
@@ -36,10 +50,6 @@ source_suffix = ".rst"
 
 # The master toctree document.
 master_doc = "index"
-
-# General information about the project.
-project = "AlaQgisPlugin"
-copyright = "2013, Atlas of Living Australia"
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -94,10 +104,31 @@ html_theme = "default"
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
-# html_theme_options = {}
+html_theme_options = {
+    "navbar_align": "content",
+    "github_url": "https://github.com/AtlasOfLivingAustralia/ala-qgis-plugin",
+    "secondary_sidebar_items": ["page-toc"],
+    # "logo": {
+    # 	"image_light": "_static/logo/logo.png", # didn't have dir before
+    #     "image_dark": "_static/logo/logo.png",
+    # },
+}
+
+# was image_light
+html_sidebars = {"index": [], "search": [], "**": ["sidebar-nav-bs"]}
 
 # Add any paths that contain custom themes here, relative to this directory.
 # html_theme_path = []
+
+# html_static_path = ['_static'] # added source/
+
+# html_logo = "_static/logo/logo.png"
+
+# html_favicon = '_static/logo/favicon.ico'
+
+# html_css_files = ['css/extra.css']
+
+# html_style = 'css/extra.css'
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".
@@ -175,15 +206,15 @@ htmlhelp_basename = "TemplateClassdoc"
 
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual]).
-latex_documents = [
-    (
-        "index",
-        "AlaQgisPlugin.tex",
-        "AlaQgisPlugin Documentation",
-        "Atlas of Living Australia",
-        "manual",
-    ),
-]
+# latex_documents = [
+#     (
+#         "index",
+#         "AlaQgisPlugin.tex",
+#         "AlaQgisPlugin Documentation",
+#         "Atlas of Living Australia",
+#         "manual",
+#     ),
+# ]
 
 # The name of an image file (relative to this directory) to place at the top of
 # the title page.

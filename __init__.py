@@ -36,11 +36,10 @@ def classFactory(iface):  # pylint: disable=invalid-name
 
     return AlaQgisPlugin(iface)
 
+
 def initGui(self):
     """Not sure if this is correct"""
     self.pluginButton = self.add_action(
-        ':/plugins/ala-qgis-plugin/icon.png',
-        text=self.tr(u'Start'),
-        callback=self.run,
-        parent=self.iface.mainWindow())
-    self.pluginButton.setObjectName('Run_plugin')
+        ":/plugins/ala-qgis-plugin/icon.png", text=self.tr("Start"), callback=self.run, parent=self.iface.mainWindow()
+    )
+    self.pluginButton.setObjectName("Run_plugin")
