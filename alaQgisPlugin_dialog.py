@@ -3,14 +3,16 @@ from datetime import datetime
 
 import galah
 import pandas as pd
+import geopandas as gpd
 from qgis.core import QgsFeature, QgsField, QgsGeometry, QgsPointXY, QgsProject, QgsVectorLayer
 from qgis.gui import QgsCheckableComboBox
 from qgis.PyQt import QtCore, QtWidgets, uic
 from qgis.PyQt.QtCore import Qt
+from qgis.PyQt.QtGui import QTextCharFormat, QColor
 from qgis.PyQt.QtWidgets import QComboBox, QDialog, QLabel, QMessageBox, QPushButton
 from qgis.utils import iface
 
-from .vocab import attributes_dict, migratoryLists, nonNativeLists, sensitiveLists, threatenedLists
+from .vocab import attributes_dict, migratoryLists, nonNativeLists, sensitiveLists, threatenedLists, taxon_selections, latitude_dict, longitude_dict
 
 # This loads your .ui file so that PyQt can populate your plugin with the elements from Qt Designer
 FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), "alaQgisPlugin_dialog_base.ui"))
@@ -58,8 +60,33 @@ class AlaQgisPluginDialog(QtWidgets.QDialog, FORM_CLASS):
 
         # populate predefined values
         self._populate_atlases()
-        self._populate_reasons()
-        self._populate_data_profiles()
+        self.atlas_select()
+
+        # testing
+        # import subprocess
+        # self.show_info_messagebox(text=f"galah version: {str(galah.__version__)}\nfile: {str(galah.__file__)}\ngeopandas: {str(gpd.__version__)}\ngeopandas file: {str(gpd.__file__)}")
+
+        # add information
+        self.basisOfRecordInformationLabel.setToolTip(
+            "This denotes the way the record was recorded.  These have been split into two:\n\n"
+            "Observations: Human and Machine Observations\n"
+            "Specimens: Fossils, Material Samples, Living and Preserved Specimens"
+        )
+        self.dataProfileInformationLabel.setToolTip(
+            "These are data quality profiles that can help filter out data you don't want in your data download.  Go to your relevant atlas for more details."
+        )
+        self.doiInformationLabel.setToolTip(
+            'If you tick the "Mint a DOI" box, you will get a DOI for your query in a popup box.  You can use this DOI in the text box to the right to get the same query.'
+        )
+        self.emailInformationLabel.setToolTip(
+            "This is your email you have registered with your chosen atlas.  To get your email registered, contact the relevant atlas."
+        )
+        self.presAbsInformationLabel.setToolTip(
+            "This is for specifying whether or not you want absence data.  The vast majority of data in atlases are presence data."
+        )
+        self.reasonInformationLabel.setToolTip(
+            "This denotes the reason you are downloading the data, i.e. for conservation or research."
+        )
 
         # define the actions clicking on these buttons will run
         self.checkTaxonBackbonePushButton.clicked.connect(self.check_ala_backbone)
@@ -68,6 +95,17 @@ class AlaQgisPluginDialog(QtWidgets.QDialog, FORM_CLASS):
         self.speciesListCountsStatuses.clicked.connect(self.get_species_list_counts_statuses)
         self.uploadSpeciesListPushButton.clicked.connect(self.upload_species_list)
         self.updateLayersPushButton.clicked.connect(self.display_layers_from_UI)
+        self.atlasesComboBox.currentIndexChanged.connect(self.atlas_select)
+
+        # create format for weekend colours
+        format = QTextCharFormat()
+        format.setForeground(QColor("#89CFF0"))  # purple
+
+        # set weekends to colour other than red
+        self.startDateCalendarWidget.setWeekdayTextFormat(Qt.DayOfWeek.Saturday, format)
+        self.startDateCalendarWidget.setWeekdayTextFormat(Qt.DayOfWeek.Sunday, format)
+        self.endDateCalendarWidget.setWeekdayTextFormat(Qt.DayOfWeek.Saturday, format)
+        self.endDateCalendarWidget.setWeekdayTextFormat(Qt.DayOfWeek.Sunday, format)
 
     """
     /***************************************************************************
@@ -81,11 +119,6 @@ class AlaQgisPluginDialog(QtWidgets.QDialog, FORM_CLASS):
      *                                                                         *
      *   atlasNames                                                            *
      *       List of all atlases available in galah-python                     *
-     *   dataProfiles                                                          *
-     *       List of existing data profiles to filter your query in the chosen *
-     *       atlas                                                             *
-     *   reasons                                                               *
-     *       List of all reasons for downloading data in the chosen atlas      *
      *                                                                         *
      * Initialised Plugin-Global Dictionaries:                                 *
      *                                                                         *
@@ -119,31 +152,9 @@ class AlaQgisPluginDialog(QtWidgets.QDialog, FORM_CLASS):
         else:
             atlasNames[row["atlas"]] = row["atlas"]
 
-    # get data profiles
-    profiles = galah.show_all(profiles=True)
-
-    # initialise data profiles dict
-    dataProfiles = {
-        COMBOBOX_NONE_LABEL: None,
-    }
-
-    # add data profile values to dict
-    for i, row in profiles.iterrows():
-        dataProfiles[row["name"]] = row["shortName"]
-
-    # get reasons in ALA
-    rs = galah.show_all(reasons=True)
-
-    # initialise reasons dict
-    reasons = {
-        COMBOBOX_NONE_LABEL: None,
-    }
-
-    # add reasons to dict
-    for i, row in rs.iterrows():
-        reasons[row["name"]] = row["id"]
-
     # add columns for getting and displaying data
+    dataProfiles = {}
+    reasons = {}
     spatialColumns = {}
     taxonomicColumns = {}
 
@@ -156,6 +167,11 @@ class AlaQgisPluginDialog(QtWidgets.QDialog, FORM_CLASS):
      * all of these functions will populate predefined values, which are       *
      * defined above.                                                          *
      *                                                                         *
+     *   atlas_select:                                                         *
+     *       change the values of reasons and data profiles depending on the   *
+     *       atlas the user has selected                                       *
+     *   _populate_atlases:                                                    *
+     *       set default combo box values from variable `atlases`.             *
      *   _populate_data_profiles:                                              *
      *       set default combo box values from variable `dataProfiles`         *
      *   _populate_reasons:                                                    *
@@ -164,17 +180,66 @@ class AlaQgisPluginDialog(QtWidgets.QDialog, FORM_CLASS):
      ***************************************************************************/
     """
 
+    def atlas_select(self):
+        galah.galah_config(atlas=self.atlasNames[self.atlasesComboBox.currentText()])
+        self._populate_data_profiles()
+        self._populate_reasons()
+
     def _populate_atlases(self):
         vals = list(self.atlasNames.keys())
         self.atlasesComboBox.addItems(sorted(vals))
 
     def _populate_data_profiles(self):
-        vals = list(self.dataProfiles.keys())
-        self.dataProfileComboBox.addItems(sorted(vals))
+
+        # initialise data profiles dict
+        dataProfiles = {
+            COMBOBOX_NONE_LABEL: None,
+        }
+
+        # clear values
+        self.dataProfileComboBox.clear()
+
+        # get data profiles
+        try:
+            profiles = galah.show_all(profiles=True)
+        except ValueError as e:
+            self.dataProfileComboBox.addItems(sorted(list(dataProfiles.keys())))
+            return None
+
+        # add data profile values to dict
+        for i, row in profiles.iterrows():
+            dataProfiles[row["name"]] = row["shortName"]
+
+        self.dataProfiles = dataProfiles
+
+        # assign values to combo box
+        self.dataProfileComboBox.addItems(sorted(list(dataProfiles.keys())))
 
     def _populate_reasons(self):
-        vals = list(self.reasons.keys())
-        self.reasonsComboBox.addItems(sorted(vals))
+
+        # initialise reasons dict
+        reasons = {
+            COMBOBOX_NONE_LABEL: None,
+        }
+
+        # clear values
+        self.reasonsComboBox.clear()
+
+        # get reasons in ALA
+        try:
+            rs = galah.show_all(reasons=True)
+        except ValueError as e:
+            self.reasonsComboBox.addItems(sorted(list(reasons.keys())))
+            return None
+
+        # add reasons to dict
+        for i, row in rs.iterrows():
+            reasons[row["name"]] = row["id"]
+
+        self.reasons = reasons
+
+        # assign values to combo box
+        self.reasonsComboBox.addItems(sorted(list(reasons.keys())))
 
     """
     /***************************************************************************
@@ -209,15 +274,15 @@ class AlaQgisPluginDialog(QtWidgets.QDialog, FORM_CLASS):
      *                                                                         *
      ***************************************************************************/
     """
+
     def close_dialogBox(self, dialogBox=None, dialogue=None):
 
-        # return a specific dictionary if the user has closed the window without selecting 
+        # return a specific dictionary if the user has closed the window without selecting
         # anything; close the application
         if dialogue == "Closed":
             self.spatialColumns = {dialogue: dialogue}
         dialogBox.close()
 
-    
     def get_spatial_selections_dialogBox(self, dialogBox=None):
 
         # separate the combo boxes and labels
@@ -239,12 +304,11 @@ class AlaQgisPluginDialog(QtWidgets.QDialog, FORM_CLASS):
         # close the dialog box
         self.close_dialogBox(dialogBox=dialogBox, dialogue="got selections")
 
-
     def get_taxon_column_names(self):
 
         # get all taxonomy comboboxes and labels for iteration
         comboboxes = [x for x in self.Taxonomy.children() if type(x) is QComboBox]
-        labels = [x for x in self.Taxonomy.children() if type(x) is QLabel]
+        labels = [x for x in self.Taxonomy.children() if type(x) is QLabel and x.objectName() != "speciesLabel"]
 
         # initialise empty dictionary for storing information
         columns = {}
@@ -252,11 +316,44 @@ class AlaQgisPluginDialog(QtWidgets.QDialog, FORM_CLASS):
         # go through all the comboboxes to see which ones the user selected
         for i, (lb, cb) in enumerate(zip(labels, comboboxes)):
             if cb.currentText() != COMBOBOX_NONE_LABEL:
-                columns[lb.objectName()] = cb.currentText()
+                columns[cb.currentText()] = lb.objectName()
 
         # check whether or not we are looking for taxonomic columns or spatial columns - assign
         # dictionary to correct object
         self.taxonomicColumns = columns
+
+
+    def show_doi_messagebox(self,doi=None,title=None):
+
+        # initiate message box
+        msg = QMessageBox()
+
+        # set information and buttons in the message box
+        # msg.setIcon(QMessageBox.Icon.Information)
+        msg.setText(f"This is your DOI:\t\t\t\t\n\n\n")
+        msg.setWindowTitle(title)
+        msg.setStandardButtons(QMessageBox.StandardButton.Ok | QMessageBox.StandardButton.Cancel)
+
+        # label with DOI
+        label = QLabel(doi, msg)
+        label.setObjectName(doi)
+        label.move(40,50)  # +2 to offset?
+        label.resize(200)
+
+        # button
+        msg.setButton = QPushButton("Copy DOI", msg)
+        msg.setButton.move(150, 50)
+        msg.setButton.clicked.connect(lambda: self.copy_to_clipboard(doi=doi))
+
+        # show message box
+        retval = msg.exec()
+
+
+    def copy_to_clipboard(self,doi=None):
+
+        cb = QtWidgets.QApplication.clipboard()
+        cb.clear(mode=cb.Clipboard)
+        cb.setText(doi,mode=cb.Clipboard)
 
 
     def show_info_messagebox(self, text=None, title=None):
@@ -273,7 +370,6 @@ class AlaQgisPluginDialog(QtWidgets.QDialog, FORM_CLASS):
         # show message box
         retval = msg.exec()
 
-
     def show_warning_messagebox(self, title=None, text=None):
 
         # initiate message box
@@ -288,7 +384,6 @@ class AlaQgisPluginDialog(QtWidgets.QDialog, FORM_CLASS):
         # show message box
         retval = msg.exec()
 
-        
     def show_spatial_dialogbox(self, title=None, selection_dict=None):
 
         # set offset here to do spacing maths
@@ -317,14 +412,10 @@ class AlaQgisPluginDialog(QtWidgets.QDialog, FORM_CLASS):
         # relevant functions
         msg.setButton = QPushButton("Set Columns", msg)
         msg.setButton.move(50, int(offset * (float(len(selection_dict.keys())) + 1.5)))
-        msg.setButton.clicked.connect(
-            lambda: self.get_spatial_selections_dialogBox(dialogBox=msg)
-        )
+        msg.setButton.clicked.connect(lambda: self.get_spatial_selections_dialogBox(dialogBox=msg))
         msg.cancelButton = QPushButton("Cancel", msg)
         msg.cancelButton.move(150, int(offset * (float(len(selection_dict.keys())) + 1.5)))
-        msg.cancelButton.clicked.connect(
-            lambda: self.close_dialogBox(dialogBox=msg, dialogue="Closed")
-        )
+        msg.cancelButton.clicked.connect(lambda: self.close_dialogBox(dialogBox=msg, dialogue="Closed"))
 
         # execute the window
         retval = msg.exec()
@@ -371,7 +462,6 @@ class AlaQgisPluginDialog(QtWidgets.QDialog, FORM_CLASS):
         # show the window
         retval = msg.exec()
 
-
     """
     /***************************************************************************
      Functions for getting data from the UI
@@ -401,7 +491,7 @@ class AlaQgisPluginDialog(QtWidgets.QDialog, FORM_CLASS):
      *       determine if users want absence, presence, or both                *
      *   parse_reason:                                                         *
      *       get variable user has chosen in data profile combo box            *
-     *   parse_spatial (IN PROGRESS):                                          *
+     *   parse_spatial:                                                        *
      *       parse all selected spatial layers and return them to galah-python *
      *       *still need to determine if drawing bounding box                  *
      *   parse_taxonomy:                                                       *
@@ -567,6 +657,7 @@ class AlaQgisPluginDialog(QtWidgets.QDialog, FORM_CLASS):
     def parse_email(self):
         return self.emailLineEdit.text()
 
+    # check completed
     def parse_filters(self):
 
         # initialise filters list
@@ -614,26 +705,48 @@ class AlaQgisPluginDialog(QtWidgets.QDialog, FORM_CLASS):
             if self.reasonsComboBox.currentText() == r:
                 return self.reasons[r]
 
-
     def parse_spatial(self):
-        n = 1
+
+        # initialise geometry list
+        geom_list = []
+
+        # get the available layers
+        layers = iface.mapCanvas().layers()
+
+        # remove OpenStreetMap from the list of layers
+        new_layers = [l for l in layers if l.name() != "OpenStreetMap"]
+
+        # get all of the checkaboe combo boxes available
+        spatial_children = [x for x in self.Spatial.children() if isinstance(x, QgsCheckableComboBox)]  # .objectName()
+
+        # check if there are no spatial objects; if none, return None
+        if len(spatial_children) == 0:
+            return None
+        elif len(spatial_children) > 10:
+            self.show_warning_messagebox(
+                text="You cannot select more than 10 shapes in your query.  You currently have {} shapes".format(
+                    len(spatial_children)
+                )
+            )
+            return "Invalid number of shapes"
+
+        # go through all layers and only get geometries of selected
+        for i, (sc, nl) in enumerate(zip(spatial_children, new_layers)):  #
+            attribute = self.spatialColumns[nl.name()[0:12]]
+            selected_shapes = sc.checkedItems()
+            if len(selected_shapes) > 1 and "None selected" in selected_shapes:
+                selected_shapes.remove("None selected")
+            features = list(nl.getFeatures())
+            selected_features = [f for f in features if f.attributeMap()[attribute] in selected_shapes]
+            geometries = [f.geometry() for f in selected_features]
+            geom_list += geometries
+
+        # return the list of all geometries for querying
+        return geom_list
 
     # check completed
     def parse_taxonomy(self):
-
-        # create potential taxon selections for people to
-        taxon_selections = [
-            "scientificName",
-            "kingdom",
-            "phylum",
-            "class",
-            "order",
-            "family",
-            "genus",
-            "vernacularName",
-            "identifiers",
-            "specific epithet",
-        ]
+        # TODO: add identifiers and specific epithet when qpip sorts out the updates to packages
 
         # initialise dictionary to make sure we cover all possible taxonomy cases
         taxonomy_dict = {
@@ -652,7 +765,7 @@ class AlaQgisPluginDialog(QtWidgets.QDialog, FORM_CLASS):
 
             # get all objects on the Taxonomy tab
             taxon_children = [x.objectName() for x in self.Taxonomy.children()]
-            
+
             # check to see if this is not None and the columns have been chosen
             if self.speciesFileLineEdit.text() not in [None, ""] and "kingdom" in taxon_children:
 
@@ -689,7 +802,7 @@ class AlaQgisPluginDialog(QtWidgets.QDialog, FORM_CLASS):
                         elif "specificEpithet" in taxon_info.keys():
                             taxonomy_dict["specificEpithet"] = taxon_info
                         elif "scientificName" in taxon_info.keys() and len(taxon_info.keys()) > 1:
-                            taxonomy_dict["scientificName"] = taxon_info
+                            taxonomy_dict["scientific_name"] = taxon_info
                         else:
                             taxonomy_dict["taxa"] = taxon_info["scientificName"]
 
@@ -698,7 +811,7 @@ class AlaQgisPluginDialog(QtWidgets.QDialog, FORM_CLASS):
 
                     # return "Closed" if this appears in the dictionary, as the user has closed the previous window
                     return "Closed"
-                
+
                 else:
 
                     # assume user has not chosen any columns
@@ -735,6 +848,7 @@ class AlaQgisPluginDialog(QtWidgets.QDialog, FORM_CLASS):
      *                                                                         *
      ***************************************************************************/
     """
+
     def display_layers_from_UI(self):
 
         # gets layers available from UI
@@ -745,6 +859,12 @@ class AlaQgisPluginDialog(QtWidgets.QDialog, FORM_CLASS):
 
         # set offset
         offset = 275
+
+        # get extant combo boxes
+        extant_ccb = [x for x in self.Spatial.children() if isinstance(x, QgsCheckableComboBox)]
+        if len(extant_ccb) > 0:
+            for ccb in extant_ccb:
+                ccb.deleteLater()
 
         # now, get all possible shapes to select from
         if self.spatialColumns:
@@ -773,7 +893,7 @@ class AlaQgisPluginDialog(QtWidgets.QDialog, FORM_CLASS):
 
                     # create a combo box for the layer
                     checkComboBox = QgsCheckableComboBox(self.Spatial)
-                    checkComboBox.setObjectName("checkComboBox")  # change this
+                    checkComboBox.setObjectName("{}CheckComboBox".format(l.name()[:12]))  # change this
                     checkComboBox.move(20 + i * offset, 100)
                     checkComboBox.addItem("None selected")
                     checkComboBox.setItemCheckState(index=0, state=Qt.CheckState.Checked)
@@ -795,6 +915,25 @@ class AlaQgisPluginDialog(QtWidgets.QDialog, FORM_CLASS):
                 layer_attr[l.name()[:12]] = temp_list
 
         return layer_attr
+
+    def draw_bounding_box(self, shapes=None):
+
+        # catch the case where the shapes variable is None
+        if shapes is None:
+            return None
+
+        # intialise list of shapes to return
+        bboxes_to_return = []
+
+        # loop over all shapes to get bounding boxes
+        for s in shapes:
+            temp = s.as_shapely()
+            xmin, ymin, xmax, ymax = temp.bounds
+            bbox = {"xmin": xmin, "ymin": ymin, "xmax": xmax, "ymax": ymax}
+            bboxes_to_return.append(bbox)
+
+        # return bboxes
+        return bboxes_to_return
 
     """
     /***************************************************************************
@@ -853,19 +992,6 @@ class AlaQgisPluginDialog(QtWidgets.QDialog, FORM_CLASS):
 
     def show_taxonomic_columns(self):
 
-        taxon_selections = [
-            "scientificName",
-            "kingdom",
-            "phylum",
-            "class",
-            "order",
-            "family",
-            "genus",
-            "vernacularName",
-            "identifiers",
-            "specific epithet",
-        ]
-        
         # check if a user has uploaded a file yet
         if hasattr(self, "speciesFileLineEdit"):
 
@@ -887,22 +1013,22 @@ class AlaQgisPluginDialog(QtWidgets.QDialog, FORM_CLASS):
                 offset1 = 250
                 offset2 = 30
                 i_offset = 0
-                j=0
+                j = 0
 
-                # if "Closed" isn't in the column names, need to get actual column names  
-                for i,key in enumerate(taxon_selections):
+                # if "Closed" isn't in the column names, need to get actual column names
+                for i, key in enumerate(taxon_selections):
 
                     # add them to the UI
                     # create label name for the layer
                     label = QLabel(key, self.Taxonomy)
                     label.setObjectName(key)
-                    label.move(20 + (i - i_offset) * offset1, 180 + j*offset2)
+                    label.move(20 + (i - i_offset) * offset1, 180 + j * offset2)
                     label.show()  # +2 to offset?
 
                     # create a combo box for the layer
                     comboBox = QComboBox(self.Taxonomy)
                     comboBox.setObjectName("{}ComboBox".format(key))  # change this
-                    comboBox.move(120 + (i - i_offset) * offset1, 179 + j*offset2)
+                    comboBox.move(120 + (i - i_offset) * offset1, 179 + j * offset2)
                     dwc_terms = list(set(selection_dict[key]).intersection(set(taxon_selections)))
                     if len(dwc_terms) > 0 and label.objectName() in dwc_terms:
                         selection_dict[key].remove(label.objectName())
@@ -911,7 +1037,7 @@ class AlaQgisPluginDialog(QtWidgets.QDialog, FORM_CLASS):
                         comboBox.addItems(sorted(selection_dict[key]))
                     comboBox.show()
 
-                    if i in [2,5,8,11]:
+                    if i in [2, 5, 8, 11]:
                         j += 1
                         i_offset += 3
 
@@ -932,7 +1058,7 @@ class AlaQgisPluginDialog(QtWidgets.QDialog, FORM_CLASS):
      *       So far, this function runs the `search_taxa` function in `galah-  *
      *       python` to get back a list of taxon in the backbone that matches  *
      *       what the user gave as input.                                      * 
-     *   prepare_query (IN PROGRESS):                                          *
+     *   prepare_query:                                                        *
      *       So far, this function gets the following information from the UI  *
      *       and places it in the appropriate place for the query:             *
      *             - email                                                     *
@@ -975,6 +1101,44 @@ class AlaQgisPluginDialog(QtWidgets.QDialog, FORM_CLASS):
                 specific_epithet=taxon_info["specific_epithet"],
             )
 
+        # calculating some statistics on matches
+        total = taxa_table.shape[0]
+        match_statistics = {
+            "Exact Matches": taxa_table.loc[taxa_table["matchType"] == "exactMatch", "matchType"].count(),
+            "Higher Matches": taxa_table.loc[taxa_table["matchType"] == "higherMatch", "matchType"].count(),
+            "Canonical Matches": taxa_table.loc[taxa_table["matchType"] == "canonicalMatch", "matchType"].count(),
+            "Fuzzy Matches": taxa_table.loc[taxa_table["matchType"] == "fuzzyMatch", "matchType"].count(),
+            "Vernacular Matches": taxa_table.loc[taxa_table["matchType"] == "vernacularMatch", "matchType"].count(),
+            "Taxon ID Matches": taxa_table.loc[taxa_table["matchType"] == "taxonIdMatch", "matchType"].count(),
+            "Phrase Matches": taxa_table.loc[taxa_table["matchType"] == "phraseMatch", "matchType"].count(),
+        }
+
+        # initalise variables
+        total_matches = 0
+        stats_text = f"You have:\n\n"
+
+        # loop over all statistics and add them to output if the number is greater than 0
+        for key in match_statistics.keys():
+            if match_statistics[key] > 0:
+                stats_text += f"{key}: {match_statistics[key]}\n"
+                total_matches += match_statistics[key]
+
+        # see how many issues there are
+        issues = total - total_matches
+
+        # if there are issues, let the user know
+        if issues > 0:
+
+            # first, check for homonyms
+            homonymns = taxa_table.loc[taxa_table["issues"] == "homonym", "issues"].count()
+            other = total - total_matches - homonymns
+
+            # add these stats to the overall text
+            stats_text += f"\n\nIssues:\n\nHomonyms: {homonymns}\nOther: {other}"
+
+        # show the statistics
+        self.show_info_messagebox(text=str(stats_text))
+
         # Show the user the taxa table
         self.show_table_dialogbox(table=taxa_table, title="Results From Searching Taxonomic Backbone")
 
@@ -984,6 +1148,11 @@ class AlaQgisPluginDialog(QtWidgets.QDialog, FORM_CLASS):
         email = self.parse_email()  # email parsed correctly
         reason = self.parse_reason()  # reason parsed correctly
         data_profile = self.parse_data_profile()  # data profile parsed correctly
+
+        # check to see if the user is using the data profile
+        use_data_profile = False
+        if data_profile not in [None,""]:
+            use_data_profile = True
 
         # check that email and reason are ticked; if not, throw error
         if not counts:
@@ -1045,52 +1214,118 @@ class AlaQgisPluginDialog(QtWidgets.QDialog, FORM_CLASS):
         fields = self.set_data_fields(auth_lists=auth_lists, EPBC=EPBC)
 
         # return taxonomy, filters and fields
-        return taxonomy, filters, spatial, doi, fields
+        return taxonomy, filters, spatial, doi, fields, use_data_profile
 
     def check_num_occurrences(self):
 
         # get all potential filters
-        taxonomy, filters, spatial, doi, fields = self.prepare_query(counts=True)
+        taxonomy, filters, spatial, doi, fields, use_data_profile = self.prepare_query(counts=True)
 
-        # get the number of records their query will return
-        counts = galah.atlas_counts(
-            taxa=taxonomy["taxa"],
-            # identifiers=taxonomy["identifiers"],
-            scientific_name=taxonomy["scientific_name"],
-            # specific_epithet=taxonomy["specific_epithet"],
-            filters=filters,
-            # add spatial here
-        )  # ,
-        # doi=doi)
+        # draw bounding boxes around shapes, as a lot of shapes are too complicated to
+        # pass in current iteration of galah
+        bboxes_for_querying = self.draw_bounding_box(shapes=spatial)
 
-        # set the text for the message box
-        text = "Your query will return {} records.".format(counts["totalRecords"][0])
+        # check for invalid number of shapes warning
+        if bboxes_for_querying == "Invalid number of shapes":
+            return None
+
+        # if there are multiple shapefiles, loop over all shapes
+        if isinstance(bboxes_for_querying, list) and len(bboxes_for_querying) > 0:
+
+            # initalise the total number of counts
+            total_counts = 0
+
+            # loop over all bounding boxes to get approximate total number of counts
+            for bbox in bboxes_for_querying:
+                counts = galah.atlas_counts(
+                    taxa=taxonomy["taxa"],
+                    identifiers=taxonomy["identifiers"],
+                    scientific_name=taxonomy["scientific_name"],
+                    specific_epithet=taxonomy["specific_epithet"],
+                    filters=filters,
+                    bbox=bbox,
+                    use_data_profile=use_data_profile
+                )
+                total_counts += counts["totalRecords"][0]
+
+            # get approximate number of counts, as this currently draws bounding boxes instead
+            # of using full shapes
+            text = "Your query will return approximately {} records.".format(total_counts)
+
+        else:
+
+            # get the number of records their query will return
+            counts = galah.atlas_counts(
+                taxa=taxonomy["taxa"],
+                identifiers=taxonomy["identifiers"],
+                scientific_name=taxonomy["scientific_name"],
+                specific_epithet=taxonomy["specific_epithet"],
+                filters=filters,
+                use_data_profile=use_data_profile
+            )
+
+            # set the text for the message box
+            text = "Your query will return {} records.".format(counts["totalRecords"][0])
 
         # show dialog box with number of counts
         self.show_info_messagebox(text=text, title="Number of records")
 
     def get_species_list_counts_statuses(self):
 
-        # check to see if user wants to mint the DOI
-        mint_doi = self.mint_doi()
-
         # get all possible filters for the query
-        taxonomy, filters, spatial, fields, doi = self.prepare_query(counts=False)
+        taxonomy, filters, spatial, fields, doi, use_data_profile = self.prepare_query(counts=False)
 
         # check to see if user provided email and reason
         if taxonomy in ["provide_email", "provide_reason"]:
             return None
 
-        # get the species list with counts and statuses (test this)
-        species_list = galah.atlas_species(
-            taxa=taxonomy,
-            filters=filters,
-            mint_doi=mint_doi,
-            # doi=doi,
-            counts=True,
-            group_by="taxonConceptID",
-            # add spatial here
-        )
+        # check for invalid number of shapes warning
+        if spatial == "Invalid number of shapes":
+            return None
+
+        # draw bounding boxes around shapes, as a lot of shapes are too complicated to
+        # pass in current iteration of galah
+        # bboxes_for_querying = self.draw_bounding_box(shapes=spatial)
+
+        # if there are at least one shape passed to the spatial, loop over queries
+        if len(spatial) > 0:
+
+            # initialise overall species list
+            species_list = pd.DataFrame()
+
+            # loop over all shapes
+            for shape in spatial:
+
+                temp = galah.atlas_species(
+                    taxa=taxonomy["taxa"],
+                    identifiers=taxonomy["identifiers"],
+                    scientific_name=taxonomy["scientific_name"],
+                    specific_epithet=taxonomy["specific_epithet"],
+                    filters=filters,
+                    counts=True,
+                    group_by="taxonConceptID",
+                    polygon=shape,
+                    simplify_polygon=True,
+                    tolerance=0.05,
+                    use_data_profile=use_data_profile
+                )
+
+                # add the list to
+                species_list = species_list.concat([species_list, temp], ignore_index=True)
+
+        else:
+
+            # get the species list with counts and statuses (test this)
+            species_list = galah.atlas_species(
+                taxa=taxonomy["taxa"],
+                identifiers=taxonomy["identifiers"],
+                scientific_name=taxonomy["scientific_name"],
+                specific_epithet=taxonomy["specific_epithet"],
+                filters=filters,
+                counts=True,
+                group_by="taxonConceptID",
+                use_data_profile=use_data_profile
+            )
 
         # download the species list
         self.download_species_list(species_list=species_list)
@@ -1101,24 +1336,46 @@ class AlaQgisPluginDialog(QtWidgets.QDialog, FORM_CLASS):
         mint_doi = self.mint_doi()
 
         # get all possible filters for the query
-        taxonomy, filters, spatial, fields, doi = self.prepare_query(counts=False)
+        taxonomy, filters, spatial, doi, fields, use_data_profile = self.prepare_query(counts=False)
 
         # check to see if user provided email and reason
         if taxonomy in ["provide_email", "provide_reason"]:
             return None
 
-        # get number of records user will download
-        counts = galah.atlas_counts(
-            taxa=taxonomy,
-            filters=filters,
-            # mint_doi=mint_doi,
-            # doi=doi
-            # add spatial here
-        )
+        # make boudning boxes
+        bboxes_for_querying = self.draw_bounding_box(shapes=spatial)
+
+        # set up total counts in case there are multiple shapes
+        total_counts = 0
+
+        # if there are shapes, loop over them; otherwise, only get one query count
+        if isinstance(bboxes_for_querying,list) and len(bboxes_for_querying) > 0:
+            for bbox in bboxes_for_querying:
+                # get number of records user will download
+                counts = galah.atlas_counts(
+                    taxa=taxonomy["taxa"],
+                    identifiers=taxonomy["identifiers"],
+                    scientific_name=taxonomy["scientific_name"],
+                    specific_epithet=taxonomy["specific_epithet"],
+                    filters=filters,
+                    bbox=bbox,
+                    use_data_profile=use_data_profile,
+                    doi=doi
+                )
+                total_counts += counts["totalRecords"][0]
+        else:
+            counts = galah.atlas_counts(
+                taxa=taxonomy["taxa"],
+                identifiers=taxonomy["identifiers"],
+                scientific_name=taxonomy["scientific_name"],
+                specific_epithet=taxonomy["specific_epithet"],
+                filters=filters,
+                use_data_profile=use_data_profile
+            )
 
         # check number of records the user will download; throw an error if there are
         # more than 5mil records to download
-        if int(counts["totalRecords"][0]) > 5000000:
+        if int(counts["totalRecords"][0]) > 5000000 or total_counts > 505000:
 
             # set the text for the message box
             text = "You cannot download more than 5 million records at a time.  You have tried to download {} records.  Please filter your query further.".format(
@@ -1131,36 +1388,124 @@ class AlaQgisPluginDialog(QtWidgets.QDialog, FORM_CLASS):
             # exit query
             return None
 
-        # get the occurrence records (add other fields too)
-        occurrences = galah.atlas_occurrences(taxa=taxonomy, 
-                                              filters=filters, 
-                                              mint_doi=mint_doi, 
-                                              fields=fields, 
-                                              doi=doi) #,
-                                              # add spatial here
-
         # initialise the latitude and longitude (will change depending on different atlases)
-        latitude = "decimalLatitude"
-        longitude = "decimalLongitude"
+        atlas = self.atlasNames[self.atlasesComboBox.currentText()]        
+        latitude = latitude_dict[atlas]
+        longitude = longitude_dict[atlas]
+
+        # if there are shapes, loop over them; otherwise, only get one query count
+        if isinstance(bboxes_for_querying,list) and len(bboxes_for_querying) > 0:
+
+            # initialise an all_occurrences dataframe for concatenating
+            all_occurrences = pd.DataFrame()
+
+            # loop over all bounding boxes
+            for i, bbox in enumerate(bboxes_for_querying):
+
+                # get occurrences for an individual bounding box
+                if mint_doi:
+                    doi, occurrences = galah.atlas_occurrences(
+                        taxa=taxonomy["taxa"],
+                        identifiers=taxonomy["identifiers"],
+                        scientific_name=taxonomy["scientific_name"],
+                        specific_epithet=taxonomy["specific_epithet"],
+                        filters=filters,
+                        mint_doi=mint_doi,
+                        fields=fields,
+                        bbox=bbox,
+                        use_data_profile=use_data_profile,
+                        print_doi=False
+                    )
+
+                    # test this
+                    self.show_doi_messagebox(doi=doi,title="Your DOI")
+
+                else:
+                    occurrences = galah.atlas_occurrences(
+                        taxa=taxonomy["taxa"],
+                        identifiers=taxonomy["identifiers"],
+                        scientific_name=taxonomy["scientific_name"],
+                        specific_epithet=taxonomy["specific_epithet"],
+                        filters=filters,
+                        mint_doi=mint_doi,
+                        fields=fields,
+                        bbox=bbox,
+                        use_data_profile=use_data_profile
+                    )
+
+                # turn the occurrences into geodataframe
+                gdf_occ = gpd.GeoDataFrame(
+                    occurrences, geometry=gpd.points_from_xy(occurrences[longitude], occurrences[latitude], crs=4326)
+                )
+
+                # get all points within the shape
+                within = gdf_occ[gdf_occ.within(spatial[i].as_shapely())]
+
+                # concatenate all the occurrences together
+                all_occurrences = pd.concat([all_occurrences, within], ignore_index=True)
+
+        else:
+
+            # get the occurrence records (add other fields too)
+            if mint_doi:
+
+                # mint a doi
+                doi, occurrences = galah.atlas_occurrences( # doi, occurrences
+                    taxa=taxonomy["taxa"],
+                    identifiers=taxonomy["identifiers"],
+                    scientific_name=taxonomy["scientific_name"],
+                    specific_epithet=taxonomy["specific_epithet"],
+                    filters=filters,
+                    mint_doi=mint_doi,
+                    fields=fields,
+                    doi=doi,
+                    use_data_profile=use_data_profile,
+                    print_doi=False
+                )
+
+                # test this
+                self.show_doi_messagebox(doi=doi,title="Your DOI")
+
+            else:
+                occurrences = galah.atlas_occurrences(
+                    taxa=taxonomy["taxa"],
+                    identifiers=taxonomy["identifiers"],
+                    scientific_name=taxonomy["scientific_name"],
+                    specific_epithet=taxonomy["specific_epithet"],
+                    filters=filters,
+                    mint_doi=mint_doi,
+                    fields=fields,
+                    doi=doi,
+                    use_data_profile=use_data_profile
+                )
+
+            # turn the occurrences into geodataframe
+            all_occurrences = gpd.GeoDataFrame(
+                occurrences, geometry=gpd.points_from_xy(occurrences[longitude], occurrences[latitude], crs=4326)
+            )
 
         # initialise layer
         layer = QgsVectorLayer("Point?crs=EPSG:4326", "data", "memory")
         provider = layer.dataProvider()
 
         # create the attributes list from the column names (as these are the attributes)
-        attributes_list = list(occurrences.columns)
+        attributes_list = list(all_occurrences.columns)
 
         # Now, add fields that you will be getting from the data frame user has downloaded
         # (attributes_dict is decliared in vocab.py)
         for a in attributes_list:
-            if a not in attributes_dict.keys():
-                self.show_warning_messagebox("This field is not found in the attributes dictionary")
+            if a == "geometry":
+                continue
+            elif a not in attributes_dict.keys():
+                self.show_warning_messagebox(
+                    text="{} is not found in the attributes dictionary.\n\n{}".format(a, attributes_dict)
+                )
                 return None
             provider.addAttributes([QgsField(a, attributes_dict[a])])
         layer.updateFields()
 
         # loop over all occurrences
-        for i, row in occurrences.iterrows():
+        for i, row in all_occurrences.iterrows():
             f = QgsFeature()
             point = QgsPointXY(row[longitude], row[latitude])
             f.setGeometry(QgsGeometry.fromPointXY(point))

@@ -41,6 +41,20 @@ migratoryLists = {
 # Authoritative lists of non-native species available in the ALA
 nonNativeLists = {"NonNative All": "dr32213"}
 
+# taxon selections
+taxon_selections = [
+    "scientificName",
+    "kingdom",
+    "phylum",
+    "class",
+    "order",
+    "family",
+    "genus",
+    "vernacularName",
+    # "identifiers",
+    # "specific epithet",
+]
+
 """
 /*****************
 Attribute values
@@ -60,4 +74,35 @@ attributes_dict = {
     "dataProviderName": QVariant.String,
     "stateConservation": QVariant.String,
     "countryConservation": QVariant.String,
+}
+
+"""
+/**********************************
+Lat/long values for each atlas
+**********************************/
+"""
+latitude_dict = {
+    "Australia": "decimalLatitude",
+    "Austria": "latitude",
+    "Brazil": "latitude",
+    "France": "latitude",
+    "Global": "decimalLatitude",
+    "Guatemala": "latitude",
+    "Kew":  "decimalLatitude",
+    "Spain": "latitude",
+    "Sweden":  "decimalLatitude",
+    "United Kingdom": "latitude",
+}
+
+longitude_dict = {
+    "Australia": "decimalLongitude",
+    "Austria": "longitude",
+    "Brazil": "longitude",
+    "France": "longitude",
+    "Global": "decimalLongitude",
+    "Guatemala": "longitude",
+    "Kew":  "decimalLongitude",
+    "Spain": "longitude",
+    "Sweden":  "decimalLongitude",
+    "United Kingdom": "longitude",
 }

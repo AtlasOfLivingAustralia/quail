@@ -1,9 +1,1 @@
-numpy>=2.0.0
-galah-python>=0.12
-black
-flake8
-isort
-codespell
-bandit
-pynose
-coverage
+galah-python==0.13.1

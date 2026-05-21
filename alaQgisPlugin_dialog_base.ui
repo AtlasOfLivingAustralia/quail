@@ -50,14 +50,14 @@
      <widget class="QLabel" name="emailLabel">
       <property name="geometry">
        <rect>
-        <x>24</x>
-        <y>22</y>
+        <x>10</x>
+        <y>21</y>
         <width>41</width>
         <height>16</height>
        </rect>
       </property>
       <property name="text">
-       <string>email*:</string>
+       <string>email:</string>
       </property>
      </widget>
      <widget class="QLabel" name="reasonLabel">
@@ -65,18 +65,18 @@
        <rect>
         <x>380</x>
         <y>22</y>
-        <width>58</width>
+        <width>51</width>
         <height>16</height>
        </rect>
       </property>
       <property name="text">
-       <string>Reason*:</string>
+       <string>Reason:</string>
       </property>
      </widget>
      <widget class="QCheckBox" name="createDoiCheckBox">
       <property name="geometry">
        <rect>
-        <x>320</x>
+        <x>310</x>
         <y>64</y>
         <width>111</width>
         <height>20</height>
@@ -99,9 +99,9 @@
      <widget class="QComboBox" name="reasonsComboBox">
       <property name="geometry">
        <rect>
-        <x>433</x>
+        <x>453</x>
         <y>17</y>
-        <width>351</width>
+        <width>331</width>
         <height>32</height>
        </rect>
       </property>
@@ -140,6 +140,45 @@
       </property>
       <property name="text">
        <string>DOI:</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="reasonInformationLabel">
+      <property name="geometry">
+       <rect>
+        <x>434</x>
+        <y>20</y>
+        <width>21</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>ℹ️</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="emailInformationLabel">
+      <property name="geometry">
+       <rect>
+        <x>48</x>
+        <y>20</y>
+        <width>21</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>ℹ️</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="doiInformationLabel">
+      <property name="geometry">
+       <rect>
+        <x>410</x>
+        <y>66</y>
+        <width>21</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>ℹ️</string>
       </property>
      </widget>
     </widget>
@@ -775,6 +814,45 @@ Australia and Territories </string>
          <width>221</width>
          <height>32</height>
         </rect>
+       </property>
+      </widget>
+      <widget class="QLabel" name="basisOfRecordInformationLabel">
+       <property name="geometry">
+        <rect>
+         <x>120</x>
+         <y>28</y>
+         <width>21</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>ℹ️</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="presAbsInformationLabel">
+       <property name="geometry">
+        <rect>
+         <x>378</x>
+         <y>28</y>
+         <width>21</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>ℹ️</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="dataProfileInformationLabel">
+       <property name="geometry">
+        <rect>
+         <x>566</x>
+         <y>28</y>
+         <width>21</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>ℹ️</string>
        </property>
       </widget>
      </widget>

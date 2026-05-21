@@ -8,9 +8,7 @@ lld
 moc
 ninja
 pkgconf
-pyqt@5
+pyqt
 qt
 vulkan-tools
 virtualbox
-docker-machine
-docker
