@@ -62,10 +62,6 @@ class AlaQgisPluginDialog(QtWidgets.QDialog, FORM_CLASS):
         self._populate_atlases()
         self.atlas_select()
 
-        # testing
-        # import subprocess
-        # self.show_info_messagebox(text=f"galah version: {str(galah.__version__)}\nfile: {str(galah.__file__)}\ngeopandas: {str(gpd.__version__)}\ngeopandas file: {str(gpd.__file__)}")
-
         # add information
         self.basisOfRecordInformationLabel.setToolTip(
             "This denotes the way the record was recorded.  These have been split into two:\n\n"
@@ -181,7 +177,7 @@ class AlaQgisPluginDialog(QtWidgets.QDialog, FORM_CLASS):
     """
 
     def atlas_select(self):
-        galah.galah_config(atlas=self.atlasNames[self.atlasesComboBox.currentText()])
+        galah.galah_config(atlas=self.atlasNames[self.atlasesComboBox.currentText()]) #, qgis=True
         self._populate_data_profiles()
         self._populate_reasons()
 
@@ -330,19 +326,19 @@ class AlaQgisPluginDialog(QtWidgets.QDialog, FORM_CLASS):
 
         # set information and buttons in the message box
         # msg.setIcon(QMessageBox.Icon.Information)
-        msg.setText(f"This is your DOI:\t\t\t\t\n\n\n")
+        msg.setText(f"This is your DOI:\t\t\t\t\t\t\t\t\t\t")
         msg.setWindowTitle(title)
         msg.setStandardButtons(QMessageBox.StandardButton.Ok | QMessageBox.StandardButton.Cancel)
 
         # label with DOI
         label = QLabel(doi, msg)
         label.setObjectName(doi)
-        label.move(40,50)  # +2 to offset?
-        label.resize(200)
+        label.move(40,25)  # +2 to offset?
+        label.resize(250,50)
 
         # button
         msg.setButton = QPushButton("Copy DOI", msg)
-        msg.setButton.move(150, 50)
+        msg.setButton.move(310, 35)
         msg.setButton.clicked.connect(lambda: self.copy_to_clipboard(doi=doi))
 
         # show message box
