@@ -20,196 +20,6 @@
    <string>ALA QGIS Plugin</string>
   </property>
   <layout class="QFormLayout" name="formLayout">
-   <item row="1" column="0" colspan="2">
-    <widget class="QGroupBox" name="emailGroupBox">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="minimumSize">
-      <size>
-       <width>800</width>
-       <height>100</height>
-      </size>
-     </property>
-     <property name="title">
-      <string/>
-     </property>
-     <widget class="QLineEdit" name="emailLineEdit">
-      <property name="geometry">
-       <rect>
-        <x>70</x>
-        <y>20</y>
-        <width>271</width>
-        <height>21</height>
-       </rect>
-      </property>
-     </widget>
-     <widget class="QLabel" name="emailLabel">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>21</y>
-        <width>41</width>
-        <height>16</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>email:</string>
-      </property>
-     </widget>
-     <widget class="QLabel" name="reasonLabel">
-      <property name="geometry">
-       <rect>
-        <x>380</x>
-        <y>22</y>
-        <width>51</width>
-        <height>16</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Reason:</string>
-      </property>
-     </widget>
-     <widget class="QCheckBox" name="createDoiCheckBox">
-      <property name="geometry">
-       <rect>
-        <x>310</x>
-        <y>64</y>
-        <width>111</width>
-        <height>20</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Create a DOI</string>
-      </property>
-     </widget>
-     <widget class="QLineEdit" name="doiLineEdit">
-      <property name="geometry">
-       <rect>
-        <x>480</x>
-        <y>64</y>
-        <width>301</width>
-        <height>21</height>
-       </rect>
-      </property>
-     </widget>
-     <widget class="QComboBox" name="reasonsComboBox">
-      <property name="geometry">
-       <rect>
-        <x>453</x>
-        <y>17</y>
-        <width>331</width>
-        <height>32</height>
-       </rect>
-      </property>
-     </widget>
-     <widget class="QComboBox" name="atlasesComboBox">
-      <property name="geometry">
-       <rect>
-        <x>65</x>
-        <y>60</y>
-        <width>231</width>
-        <height>32</height>
-       </rect>
-      </property>
-     </widget>
-     <widget class="QLabel" name="atlasesLabel">
-      <property name="geometry">
-       <rect>
-        <x>28</x>
-        <y>65</y>
-        <width>33</width>
-        <height>16</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>atlas:</string>
-      </property>
-     </widget>
-     <widget class="QLabel" name="doiLabel">
-      <property name="geometry">
-       <rect>
-        <x>450</x>
-        <y>66</y>
-        <width>27</width>
-        <height>16</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>DOI:</string>
-      </property>
-     </widget>
-     <widget class="QLabel" name="reasonInformationLabel">
-      <property name="geometry">
-       <rect>
-        <x>434</x>
-        <y>20</y>
-        <width>21</width>
-        <height>21</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>ℹ️</string>
-      </property>
-     </widget>
-     <widget class="QLabel" name="emailInformationLabel">
-      <property name="geometry">
-       <rect>
-        <x>48</x>
-        <y>20</y>
-        <width>21</width>
-        <height>21</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>ℹ️</string>
-      </property>
-     </widget>
-     <widget class="QLabel" name="doiInformationLabel">
-      <property name="geometry">
-       <rect>
-        <x>410</x>
-        <y>66</y>
-        <width>21</width>
-        <height>21</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>ℹ️</string>
-      </property>
-     </widget>
-    </widget>
-   </item>
-   <item row="2" column="0" colspan="2">
-    <widget class="QPushButton" name="checkNumOccurrences">
-     <property name="text">
-      <string>Check Number of Occurrences</string>
-     </property>
-    </widget>
-   </item>
-   <item row="5" column="0">
-    <widget class="QPushButton" name="speciesListCountsStatuses">
-     <property name="minimumSize">
-      <size>
-       <width>450</width>
-       <height>0</height>
-      </size>
-     </property>
-     <property name="text">
-      <string>Get Species List With Counts and Statuses</string>
-     </property>
-    </widget>
-   </item>
-   <item row="5" column="1">
-    <widget class="QPushButton" name="occDownload">
-     <property name="text">
-      <string>Download Occurrences</string>
-     </property>
-    </widget>
-   </item>
    <item row="0" column="0" colspan="2">
     <widget class="QTabWidget" name="tabWidget">
      <property name="minimumSize">
@@ -219,7 +29,7 @@
       </size>
      </property>
      <property name="currentIndex">
-      <number>0</number>
+      <number>4</number>
      </property>
      <widget class="QWidget" name="Taxonomy">
       <attribute name="title">
@@ -856,6 +666,202 @@ Australia and Territories </string>
        </property>
       </widget>
      </widget>
+    </widget>
+   </item>
+   <item row="1" column="0" colspan="2">
+    <widget class="QGroupBox" name="emailGroupBox">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="minimumSize">
+      <size>
+       <width>800</width>
+       <height>100</height>
+      </size>
+     </property>
+     <property name="title">
+      <string/>
+     </property>
+     <widget class="QLineEdit" name="emailLineEdit">
+      <property name="geometry">
+       <rect>
+        <x>70</x>
+        <y>20</y>
+        <width>271</width>
+        <height>21</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QLabel" name="emailLabel">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>22</y>
+        <width>41</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>email:</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="reasonLabel">
+      <property name="geometry">
+       <rect>
+        <x>380</x>
+        <y>22</y>
+        <width>51</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Reason:</string>
+      </property>
+     </widget>
+     <widget class="QCheckBox" name="createDoiCheckBox">
+      <property name="geometry">
+       <rect>
+        <x>310</x>
+        <y>64</y>
+        <width>111</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Create a DOI</string>
+      </property>
+     </widget>
+     <widget class="QLineEdit" name="doiLineEdit">
+      <property name="geometry">
+       <rect>
+        <x>480</x>
+        <y>64</y>
+        <width>301</width>
+        <height>21</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QComboBox" name="reasonsComboBox">
+      <property name="geometry">
+       <rect>
+        <x>453</x>
+        <y>17</y>
+        <width>331</width>
+        <height>32</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QComboBox" name="atlasesComboBox">
+      <property name="geometry">
+       <rect>
+        <x>65</x>
+        <y>60</y>
+        <width>231</width>
+        <height>32</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QLabel" name="atlasesLabel">
+      <property name="geometry">
+       <rect>
+        <x>28</x>
+        <y>65</y>
+        <width>33</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>atlas:</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="doiLabel">
+      <property name="geometry">
+       <rect>
+        <x>450</x>
+        <y>66</y>
+        <width>27</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>DOI:</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="reasonInformationLabel">
+      <property name="geometry">
+       <rect>
+        <x>434</x>
+        <y>20</y>
+        <width>21</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>ℹ️</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="emailInformationLabel">
+      <property name="geometry">
+       <rect>
+        <x>48</x>
+        <y>20</y>
+        <width>21</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>ℹ️</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="doiInformationLabel">
+      <property name="geometry">
+       <rect>
+        <x>410</x>
+        <y>63</y>
+        <width>21</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>ℹ️</string>
+      </property>
+     </widget>
+    </widget>
+   </item>
+   <item row="2" column="0" colspan="2">
+    <widget class="QPushButton" name="checkNumOccurrences">
+     <property name="text">
+      <string>Check Number of Occurrences</string>
+     </property>
+    </widget>
+   </item>
+   <item row="5" column="0">
+    <widget class="QPushButton" name="speciesListCountsStatuses">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="minimumSize">
+      <size>
+       <width>375</width>
+       <height>0</height>
+      </size>
+     </property>
+     <property name="text">
+      <string>Get Species List With Counts and Statuses</string>
+     </property>
+    </widget>
+   </item>
+   <item row="5" column="1">
+    <widget class="QPushButton" name="occDownload">
+     <property name="text">
+      <string>Download Occurrences</string>
+     </property>
     </widget>
    </item>
   </layout>

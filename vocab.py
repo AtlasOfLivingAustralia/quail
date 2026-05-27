@@ -88,9 +88,9 @@ latitude_dict = {
     "France": "latitude",
     "Global": "decimalLatitude",
     "Guatemala": "latitude",
-    "Kew":  "decimalLatitude",
+    "Kew": "decimalLatitude",
     "Spain": "latitude",
-    "Sweden":  "decimalLatitude",
+    "Sweden": "decimalLatitude",
     "United Kingdom": "latitude",
 }
 
@@ -101,8 +101,8 @@ longitude_dict = {
     "France": "longitude",
     "Global": "decimalLongitude",
     "Guatemala": "longitude",
-    "Kew":  "decimalLongitude",
+    "Kew": "decimalLongitude",
     "Spain": "longitude",
-    "Sweden":  "decimalLongitude",
+    "Sweden": "decimalLongitude",
     "United Kingdom": "longitude",
 }
