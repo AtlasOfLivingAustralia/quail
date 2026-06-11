@@ -1,6 +1,6 @@
-# ALA QGIS Plugin (EXPERIMENTAL)
+# Quail (EXPERIMENTAL)
 
-<!-- # ALA QGIS Plugin <a href="https://galah.ala.org.au/Python/"><img src="docs/source/_static/logo/logo.png" align="right" style="margin: 0px 10px 0px 10px;" alt="" height="138"/></a> -->
+<!-- # Quail <a href="https://galah.ala.org.au/Python/"><img src="docs/source/_static/logo/logo.png" align="right" style="margin: 0px 10px 0px 10px;" alt="" height="138"/></a> -->
 
 <!-- badges: start -->
 
@@ -10,14 +10,14 @@
 
 ## Overview
 
-`ALA QGIS Plugin` is a plugin for [QGIS](https://qgis.org/) designed for users to 
+`Quail` is a plugin for [QGIS](https://qgis.org/) designed for users to 
 interface with biodiversity data in the [Atlas of Living Australia](https://www.ala.org.au) 
 (ALA).  The ALA organises, collates and stores observations of individual life forms, 
-using the [‘Darwin Core’](https://dwc.tdwg.org/) data standard.  `ALA QGIS Plugin` 
+using the [‘Darwin Core’](https://dwc.tdwg.org/) data standard.  `Quail` 
 was built and is maintained by the [Science & Decision Support Team](https://labs.ala.org.au) 
 at the ALA.
 
-`ALA QGIS Plugin` enables users to locate and download species occurrence records
+`Quail` enables users to locate and download species occurrence records
 (observations, specimens, eDNA records, etc.), taxonomic information, or
 associated media such as images or sounds, and to restrict their queries
 to particular taxa or locations. Users can either download a species list or a 
@@ -29,7 +29,7 @@ us](mailto:support@ala.org.au).
 ## Installation (QGIS)
 
 When you load QGIS, go to `Plugins`->`Manage and Install Plugins`.  Under the 
-`Not installed` option, search for `ALA QGIS Plugin` and install it.  You are 
+`Not installed` option, search for `Quail` and install it.  You are 
 then ready to go!
 
 ## Getting started
@@ -38,7 +38,7 @@ The `Getting Started Tutorial` provides an introduction on how to use the plugin
 
 ## Usage
 
-View the `ALA QGIS Plugin website` for documentations and vignettes to get started.
+View the `Quail website` for documentations and vignettes to get started.
 
 ## Licence 
 This plugin was created and designed by Amanda Buyan under a MPL-2.0 licence, with 

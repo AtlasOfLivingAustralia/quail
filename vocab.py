@@ -51,7 +51,7 @@ taxon_selections = [
     "family",
     "genus",
     "vernacularName",
-    # "identifiers",
+    "identifiers",
     # "specific epithet",
 ]
 

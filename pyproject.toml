@@ -1,5 +1,5 @@
 [tool.qgis_plugin_dev_tools]
-plugin_package_name = "alaQgisPlugin"
+plugin_package_name = "Quail"
 runtime_requires = [
     "requests"
 ]

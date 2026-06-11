@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>AlaQgisPluginDialogBase</class>
- <widget class="QDialog" name="AlaQgisPluginDialogBase">
+ <class>QuailDialogBase</class>
+ <widget class="QDialog" name="QuailDialogBase">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -17,7 +17,7 @@
    </sizepolicy>
   </property>
   <property name="windowTitle">
-   <string>ALA QGIS Plugin</string>
+   <string>Quail</string>
   </property>
   <layout class="QFormLayout" name="formLayout">
    <item row="0" column="0" colspan="2">
@@ -29,7 +29,7 @@
       </size>
      </property>
      <property name="currentIndex">
-      <number>4</number>
+      <number>0</number>
      </property>
      <widget class="QWidget" name="Taxonomy">
       <attribute name="title">
@@ -86,7 +86,7 @@
         <string>Upload Species List</string>
        </property>
       </widget>
-      <widget class="QLabel" name="speciesLabel">
+      <widget class="QLabel" name="speciesNamesLabel">
        <property name="geometry">
         <rect>
          <x>10</x>
@@ -860,7 +860,7 @@ Australia and Territories </string>
    <item row="5" column="1">
     <widget class="QPushButton" name="occDownload">
      <property name="text">
-      <string>Download Occurrences</string>
+      <string>Import Occurrence Records</string>
      </property>
     </widget>
    </item>
