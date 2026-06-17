@@ -4,11 +4,12 @@ from datetime import datetime
 import galah
 import geopandas as gpd
 import pandas as pd
+import webbrowser
 from qgis.core import QgsFeature, QgsField, QgsGeometry, QgsPointXY, QgsProject, QgsVectorLayer
 from qgis.gui import QgsCheckableComboBox
 from qgis.PyQt import QtCore, QtWidgets, uic
 from qgis.PyQt.QtCore import Qt
-from qgis.PyQt.QtGui import QColor, QTextCharFormat
+from qgis.PyQt.QtGui import QColor, QTextCharFormat, QPixmap
 from qgis.PyQt.QtWidgets import QCheckBox, QComboBox, QDialog, QLabel, QMessageBox, QPushButton
 from qgis.utils import iface
 
@@ -24,7 +25,7 @@ from .vocab import (
 )
 
 # This loads your .ui file so that PyQt can populate your plugin with the elements from Qt Designer
-FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), "Quail_dialog_base.ui"))
+FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), "quail_dialog_base.ui"))
 
 # Set default combo box for none
 COMBOBOX_NONE_LABEL = "-- None --"
@@ -73,21 +74,21 @@ class QuailDialog(QtWidgets.QDialog, FORM_CLASS):
 
         # add information
         self.basisOfRecordInformationLabel.setToolTip(
-            "This denotes the way the record was recorded.  These have been split into two options:\n\n"
+            "The specific nature of the data record.  These have been split into two options:\n\n"
             "Observations: Human and Machine Observations\n"
             "Specimens: Fossils, Material Samples, Living and Preserved Specimens"
         )
         self.dataProfileInformationLabel.setToolTip(
-            "These are data quality profiles that can help filter out data you don't want in your data download.  Go to your relevant atlas for more details."
+            "These are data quality profiles that can help filter out data that is not fit for your purpose.  Go to your relevant atlas for more details."
         )
         self.doiInformationLabel.setToolTip(
-            'If you tick the "Mint a DOI" box, you will get a DOI for your query in a popup box.  You can use this DOI in the text box to the right to get the same query.'
+            'Tick this box to get a DOI for your query in a popup box.  You can use this DOI in the text box to the right to get the same query.'
         )
         self.emailInformationLabel.setToolTip(
             "This is your email you have registered with your chosen atlas.  To get your email registered, contact the relevant atlas."
         )
         self.presAbsInformationLabel.setToolTip(
-            "This is for specifying whether or not you want absence data.  The vast majority of data in atlases are presence data."
+            "A statement about the detection or non-detection of a dwc:Organism during a dwc:Event.  The vast majority of data in atlases are presence data."
         )
         self.reasonInformationLabel.setToolTip(
             "This denotes the reason you are downloading the data, i.e. for conservation or research."
@@ -101,6 +102,9 @@ class QuailDialog(QtWidgets.QDialog, FORM_CLASS):
         self.uploadSpeciesListPushButton.clicked.connect(self.upload_species_list)
         self.updateLayersPushButton.clicked.connect(self.display_layers_from_UI)
         self.atlasesComboBox.currentIndexChanged.connect(self.atlas_select)
+        self.visitAlaPushButton.clicked.connect(self.open_to_ala)
+        self.openDocosPushButton.clicked.connect(self.open_docs)
+        self.contactAtlasPushButton.clicked.connect(self.contact_atlas)
 
         # create format for weekend colours
         format = QTextCharFormat()
@@ -111,6 +115,14 @@ class QuailDialog(QtWidgets.QDialog, FORM_CLASS):
         self.startDateCalendarWidget.setWeekdayTextFormat(Qt.DayOfWeek.Sunday, format)
         self.endDateCalendarWidget.setWeekdayTextFormat(Qt.DayOfWeek.Saturday, format)
         self.endDateCalendarWidget.setWeekdayTextFormat(Qt.DayOfWeek.Sunday, format)
+
+        # ala_logo = os.path.join(os.path.dirname(os.path.abspath(__file__)), "ALA_Logo_Inline_RGB.png")
+        # colorCount, convertFromImage, fromImage, hieght, widgeth
+
+        # set the styling on the plugin
+        qss_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "quail.qss")
+        with open(qss_file, "r") as file:
+            self.setStyleSheet(file.read())
 
     """
     /***************************************************************************
@@ -156,6 +168,18 @@ class QuailDialog(QtWidgets.QDialog, FORM_CLASS):
             atlasNames["Kew Gardens Data Portal"] = row["atlas"]
         else:
             atlasNames[row["atlas"]] = row["atlas"]
+
+    atlasEmails = {
+        "Australia": "https://ala.org.au\n\nsupport@ala.org.au", # try this
+        "Austria": "https://auth.biodiversityatlas.at/cas/login\n\noffice@biodiversityaustria.at",
+        "Brazil": "atendimento_sibbr@rnp.br",
+        "Flanders": "https://natuurdata.inbo.be/\n\nhttps://www.vlaanderen.be/inbo/inbo/contacteer-inbo/",
+        "GBIF": "gbif.org\nhttps://www.gbif.org/contact-us",
+        "Kew": "https://data.kew.org/?lang=en-GB\n\nhttps://data.kew.org/contact.html",
+        "Spain": "https://auth.gbif.es/cas/login?lang=en\n\ninfo@gbif.es",
+        "Sweden": "https://docs.biodiversitydata.se/support/",
+        "United Kingdom": "https://docs.nbnatlas.org/"
+    }
 
     # add variables for getting and displaying data
     dataProfiles = {}
@@ -256,6 +280,38 @@ class QuailDialog(QtWidgets.QDialog, FORM_CLASS):
 
         # assign values to combo box
         self.reasonsComboBox.addItems(sorted(list(reasons.keys())))
+
+    """
+    /***************************************************************************
+     Open links
+     ***************************************************************************/
+
+    /***************************************************************************
+     * all of these functions will populate predefined values, which are       *
+     * defined above.                                                          *
+     *                                                                         *
+     *   open_to_ala:                                                          *
+     *       open a web browser to the ALA                                     *
+     *   open_docs:                                                            *
+     *       open a web browser to the Quail documentation                     *
+     *   email_atlas:                                                          *
+     *       open a pop-up box with the email in it                            *
+     *                                                                         *
+     ***************************************************************************/
+    """
+    def open_to_ala(self):
+        webbrowser.open("https://www.ala.org.au")
+
+    def open_docs(self):
+        webbrowser.open("https://quail.ala.org.au")
+
+    def contact_atlas(self):
+
+        # get atlas
+        atlas = self.atlasNames[self.atlasesComboBox.currentText()]
+
+        # open contact info for atlas
+        self.show_info_messagebox(text=f"To visit and/or contact your atlas, visit\n\n{self.atlasEmails[atlas]}")
 
     """
     /***************************************************************************

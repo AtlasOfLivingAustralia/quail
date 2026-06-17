@@ -9,6 +9,7 @@ moc
 ninja
 pkgconf
 pyqt
+pyside
 qt
 vulkan-tools
 virtualbox

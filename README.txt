@@ -1,7 +1,7 @@
 Plugin Builder Results
 
 Your plugin quail was created in:
-    /Users/buy003/Documents/GitHub/ala-qgis-plugin
+    /Users/buy003/Documents/GitHub/quail
 
 Your QGIS plugin directory is located at:
     /Users/buy003/Library/Application Support/QGIS/QGIS3/profiles/default/python/plugins

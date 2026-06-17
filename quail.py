@@ -30,7 +30,7 @@ from qgis.PyQt.QtWidgets import QAction
 # Import the code for the dialog
 from .quail_dialog import QuailDialog
 
-# Initialize Qt resources from file resources.py
+# Import the icon from resources.py
 from .resources import *
 
 
@@ -60,7 +60,7 @@ class Quail:
 
         # Declare instance attributes
         self.actions = []
-        self.menu = self.tr("&ALA QGIS Plugin")
+        self.menu = self.tr("&Quail")
 
         # Check if plugin was started the first time in current QGIS session
         # Must be set in initGui() to survive plugin reloads
@@ -157,7 +157,7 @@ class Quail:
     def initGui(self):
         """Create the menu entries and toolbar icons inside the QGIS GUI."""
 
-        icon_path = ":/plugins/Quail/icon.png"
+        icon_path = ":/plugins/Quail/icon.png" #/plugins/quail/
         self.add_action(
             icon_path,
             text=self.tr(""),
@@ -171,7 +171,7 @@ class Quail:
     def unload(self):
         """Removes the plugin menu item and icon from QGIS GUI."""
         for action in self.actions:
-            self.iface.removePluginMenu(self.tr("&ALA QGIS Plugin"), action)
+            self.iface.removePluginMenu(self.tr("&Quail"), action)
             self.iface.removeToolBarIcon(action)
 
     def run(self):

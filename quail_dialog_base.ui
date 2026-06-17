@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>824</width>
-    <height>646</height>
+    <height>715</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -20,7 +20,67 @@
    <string>Quail</string>
   </property>
   <layout class="QFormLayout" name="formLayout">
-   <item row="0" column="0" colspan="2">
+   <item row="0" column="0">
+    <widget class="QGroupBox" name="atlasGroupBox">
+     <property name="enabled">
+      <bool>true</bool>
+     </property>
+     <property name="minimumSize">
+      <size>
+       <width>375</width>
+       <height>35</height>
+      </size>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>375</width>
+       <height>25</height>
+      </size>
+     </property>
+     <property name="title">
+      <string/>
+     </property>
+     <widget class="QLabel" name="alaLogoLabel">
+      <property name="geometry">
+       <rect>
+        <x>3</x>
+        <y>4</y>
+        <width>191</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>191</width>
+        <height>41</height>
+       </size>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+      <property name="pixmap">
+       <pixmap>ALA_Logo_Inline_REV-RGB.png</pixmap>
+      </property>
+      <property name="scaledContents">
+       <bool>true</bool>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="visitAlaPushButton">
+      <property name="geometry">
+       <rect>
+        <x>240</x>
+        <y>2</y>
+        <width>100</width>
+        <height>32</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Visit the ALA</string>
+      </property>
+     </widget>
+    </widget>
+   </item>
+   <item row="1" column="0" colspan="2">
     <widget class="QTabWidget" name="tabWidget">
      <property name="minimumSize">
       <size>
@@ -668,7 +728,7 @@ Australia and Territories </string>
      </widget>
     </widget>
    </item>
-   <item row="1" column="0" colspan="2">
+   <item row="2" column="0" colspan="2">
     <widget class="QGroupBox" name="emailGroupBox">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
@@ -831,15 +891,18 @@ Australia and Territories </string>
      </widget>
     </widget>
    </item>
-   <item row="2" column="0" colspan="2">
+   <item row="3" column="0" colspan="2">
     <widget class="QPushButton" name="checkNumOccurrences">
      <property name="text">
       <string>Check Number of Occurrences</string>
      </property>
     </widget>
    </item>
-   <item row="5" column="0">
+   <item row="6" column="0">
     <widget class="QPushButton" name="speciesListCountsStatuses">
+     <property name="enabled">
+      <bool>true</bool>
+     </property>
      <property name="sizePolicy">
       <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
        <horstretch>0</horstretch>
@@ -857,11 +920,44 @@ Australia and Territories </string>
      </property>
     </widget>
    </item>
-   <item row="5" column="1">
+   <item row="6" column="1">
     <widget class="QPushButton" name="occDownload">
      <property name="text">
       <string>Import Occurrence Records</string>
      </property>
+    </widget>
+   </item>
+   <item row="0" column="1">
+    <widget class="QGroupBox" name="pushButtonGroupBox">
+     <property name="title">
+      <string/>
+     </property>
+     <widget class="QPushButton" name="openDocosPushButton">
+      <property name="geometry">
+       <rect>
+        <x>14</x>
+        <y>2</y>
+        <width>171</width>
+        <height>32</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Open Documentation</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="contactAtlasPushButton">
+      <property name="geometry">
+       <rect>
+        <x>231</x>
+        <y>2</y>
+        <width>171</width>
+        <height>32</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Contact Your Atlas</string>
+      </property>
+     </widget>
     </widget>
    </item>
   </layout>

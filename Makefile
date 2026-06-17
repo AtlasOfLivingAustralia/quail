@@ -1,5 +1,5 @@
 #/***************************************************************************
-# AlaQgisPlugin
+# quail
 #
 # This plugin is designed to get ALA data into QGIS
 #							 -------------------
@@ -38,17 +38,17 @@ LOCALES =
 # translation
 SOURCES = \
 	__init__.py \
-	alaQgisPlugin.py alaQgisPlugin_dialog.py
+	quail.py quail_dialog.py
 
-PLUGINNAME = alaQgisPlugin
+PLUGINNAME = quail
 
 PY_FILES = \
 	__init__.py \
-	alaQgisPlugin.py alaQgisPlugin_dialog.py
+	quail.py quail_dialog.py
 
-UI_FILES = alaQgisPlugin_dialog_base.ui
+UI_FILES = quail_dialog_base.ui
 
-EXTRAS = metadata.txt icon.png
+EXTRAS = metadata.txt icon.png ALA_Logo_Inline_RGB.png
 
 EXTRA_DIRS =
 
