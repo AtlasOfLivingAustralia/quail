@@ -6,11 +6,11 @@ Getting Started
     You will need to register your email address at the atlas you 
     want to download data for, otherwise you will get no data!
 
-Now that you have successfully installed the Living Atlases QGIS Plugin, 
-we’ll provide a quick introduction on building a query to get data. If 
-you’re looking for a discussion on more specialised topics, the Deep Dives
-tab collates all vignettes on specialised topics. This tutorial serves 
-as an initial method to acquaint you with the plugin.
+Now that you have successfully installed Quail, we’ll provide a quick 
+introduction on building a query to get data. If you’re looking for a 
+discussion on more specialised topics, the Deep Dives tab collates all 
+vignettes on specialised topics. This tutorial serves as an initial 
+method to acquaint you with the plugin.
 
 We will work through the following example (this is specific to the 
 Australian atlas, but can be adapted for others):
@@ -72,7 +72,7 @@ for the start date, and the 31st of December 2025 as our end date, like so:
 Filtering By Spatial Layers
 ---------------------------------
 
-Another functionality of the Living Atlases QGIS plugin is the 
+Another functionality of the Quail is the 
 ability to filter using spatial objects uploaded to QGIS.  To 
 use them as filters, go to the "Spatial" tab and press "Update 
 Layers in Plugin."
@@ -100,10 +100,16 @@ load the names of all the LGAs into the plugin.
 
 |
 
+.. figure:: images/Spatial_4.png
+    :scale: 65
+    :align: center
+
+|
+
 Now that all the layer attributes have been loaded into the plugin, 
 it is time to scroll down the LGA names until you find "Shoalhaven".
 
-.. figure:: images/Spatial_4.png
+.. figure:: images/Spatial_5.png
     :scale: 65
     :align: center
 
@@ -235,5 +241,7 @@ Your data should look like this below:
     :align: center
 
 |
+
 |
+
 [1] https://threatenedspecies.bionet.nsw.gov.au/profile?id=10562

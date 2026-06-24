@@ -6,15 +6,14 @@
 name=Quail
 qgisMinimumVersion=3.0
 qgisMaximumVersion=4.99
-description=This plugin is designed to get ALA data into QGIS
-version=0.1
-author=Atlas of Living Australia
-email=amanda.buyan@csiro.au
+description=A plugin designed to get biodiversity data from a number of Living Atlases into QGIS
+version=1.0
+author=Amanda Buyan, Atlas of Living Australia
+email=support@ala.org.au
 
-about=This plugin will get ALA data into QGIS.
+about=A plugin designed to get biodiversity data from a number of Living Atlases into QGIS.  These include GBIF, the Atlas of Living Australia, Austria, Brazil, Flanders, Kew Gardens, Spain, Sweden, and the United Kingdom.
 
-tracker=http://bugs
-repository=http://repo
+repository=https://github.com/AtlasOfLivingAustralia/quail
 # End of mandatory metadata
 
 # Recommended items:
@@ -24,13 +23,13 @@ hasProcessingProvider=no
 # changelog=
 
 # Tags are comma separated with spaces allowed
-tags=python
+tags=python, biodiversity, gbif, occurrence, observations
 
-homepage=http://homepage
+homepage=https://quail.ala.org.au
 category=Plugins
 icon=icon.png
 # experimental flag
-experimental=True
+experimental=False
 
 # deprecated flag (applies to the whole plugin, not just a single version)
 deprecated=False
@@ -41,7 +40,7 @@ deprecated=False
 plugin_dependencies=qpip
 
 Category of the plugin: Raster, Vector, Database or Web
-# category=
+# category=Database
 
 # If the plugin can run on QGIS Server.
 server=False

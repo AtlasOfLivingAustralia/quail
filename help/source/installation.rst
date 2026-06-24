@@ -11,7 +11,7 @@ First, you will need to open up QGIS.  After which, navigate
 
 Plugins->Manage and Install Plugins
 
-Search for "Living Atlases QGIS Plugin"
+Search for "Quail"
 
 Click "Install Plugin"
 

@@ -11,4 +11,4 @@ Authors
 Citation
 --------
 
-Buyan A (2026). Living Atlases QGIS Plugin: Atlas of Living Australia (ALA) Data and Resources in QGIS. Version |version|. https://github.com/AtlasOfLivingAustralia/ala-qgis-plugin.
+Buyan A (2026). LQuailn: Atlas of Living Australia (ALA) Data and Resources in QGIS. Version |version|. https://github.com/AtlasOfLivingAustralia/quail.

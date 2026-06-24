@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# AlaQgisPlugin documentation build configuration file, created by
+# Quail documentation build configuration file, created by
 # sphinx-quickstart on Sun Feb 12 17:11:03 2012.
 #
 # This file is execfile()d with the current directory set to its containing dir.
@@ -18,7 +18,7 @@
 
 # -- Project information -----------------------------------------------------
 # General information about the project.
-project = "AlaQgisPlugin"
+project = "Quail"
 copyright = "2026, Atlas of Living Australia"
 author = "Atlas of Living Australia"
 
@@ -198,8 +198,8 @@ htmlhelp_basename = "TemplateClassdoc"
 # latex_documents = [
 #     (
 #         "index",
-#         "AlaQgisPlugin.tex",
-#         "AlaQgisPlugin Documentation",
+#         "Quail.tex",
+#         "Quail Documentation",
 #         "Atlas of Living Australia",
 #         "manual",
 #     ),
@@ -237,7 +237,7 @@ man_pages = [
     (
         "index",
         "TemplateClass",
-        "AlaQgisPlugin Documentation",
+        "Quail Documentation",
         ["Atlas of Living Australia"],
         1,
     )
