@@ -898,10 +898,14 @@ class QuailDialog(QtWidgets.QDialog, FORM_CLASS):
             return "Invalid number of shapes"
         
         # remove any layers which are not already loaded into the plugin
-        new_layers = [x for x in new_layers if x.name()[0:12] in spatial_children_names]
+        included_layers = []
+        for x in new_layers:
+            for y in spatial_children_names:
+                if x.name()[0:12] in y:
+                    included_layers.append(x)
         
         # go through all layers and only get geometries of selected
-        for i, (sc, nl) in enumerate(zip(spatial_children, new_layers)):  #
+        for i, (sc, nl) in enumerate(zip(spatial_children, included_layers)):  #
             attribute = self.spatialColumns[nl.name()[0:12]]
             selected_shapes = sc.checkedItems()
             if len(selected_shapes) > 1 and "None selected" in selected_shapes:
@@ -1339,6 +1343,7 @@ class QuailDialog(QtWidgets.QDialog, FORM_CLASS):
             use_data_profile = True
 
         # GBIF stuff
+        email_GBIF = ""
         usernameGBIF = ""
         passwordGBIF = ""
 
@@ -1352,7 +1357,7 @@ class QuailDialog(QtWidgets.QDialog, FORM_CLASS):
                 )
                 return "provide_email","","","","",""
             elif email not in [None, ""] and atlas in ["Global","GBIF"]:
-                if len(email.split(",")) != 2:
+                if len(email.split(",")) != 3:
                     self.show_warning_messagebox(text=f"You need to provide three values in the email box for GBIF, separated by commas:\n\nemail, username, password\n\n", title = "Warning")
                     return "provide_email_gbif","","","","",""
                 email_GBIF,usernameGBIF,passwordGBIF = email.split(",")
@@ -1382,7 +1387,7 @@ class QuailDialog(QtWidgets.QDialog, FORM_CLASS):
 
         # add any spatial queries
         spatial = self.parse_spatial()
-
+        
         # set fields
         fields = self.set_data_fields()
 
@@ -1510,7 +1515,7 @@ class QuailDialog(QtWidgets.QDialog, FORM_CLASS):
         taxonomy, filters, spatial, doi, fields, use_data_profile = self.prepare_query(counts=False)
 
         # check to see if user provided email and reason
-        if taxonomy in ["provide_email", "provide_reason", "provide_reason_gbif"]:
+        if taxonomy in ["provide_email", "provide_reason", "provide_email_gbif"]:
             return None
 
         # make bounding boxes

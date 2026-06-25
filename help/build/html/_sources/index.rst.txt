@@ -5,8 +5,12 @@
 
 :notoc:
 
-Quail
+|quail-logo|   Quail 
 =====================================
+
+.. |quail-logo| image:: _static/logo/logo.png   
+    :width: 150px
+    :alt: quail hexagon logo
 
 **Date**: |today|  **Version**: |version|  
 

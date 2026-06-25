@@ -1,6 +1,6 @@
 # Quail
 
-<!-- # Quail <a href="https://quail.ala.org.au"><img src="docs/source/_static/logo/logo.png" align="right" style="margin: 0px 10px 0px 10px;" alt="" height="138"/></a> -->
+# Quail <a href="https://quail.ala.org.au"><img src="docs/source/_static/logo/logo.png" align="right" style="margin: 0px 10px 0px 10px;" alt="" height="138"/></a>
 
 <!-- badges: start -->
 
@@ -26,7 +26,7 @@ to particular taxa or locations. Users can download a set of occurrence
 records, and can choose to summarise it as a species list.
 
 If you have any comments, questions or suggestions, please 
-[contactus](mailto:support@ala.org.au).
+[contact us](mailto:support@ala.org.au).
 
 ## Installation (QGIS)
 
@@ -74,5 +74,5 @@ I have put all the required Python packages for development in a ```requirements
 folder.  Simply run ```pip install``` with the requirements folder.
 
 ```
-pip install -r requirements.txt
+pip install -r requirements-dev.txt
 ```
