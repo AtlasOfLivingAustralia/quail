@@ -1,0 +1,8 @@
+galah-python
+black
+flake8
+isort
+codespell
+sphinx
+myst-parser
+sphinx-design

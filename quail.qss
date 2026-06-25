@@ -1,0 +1,10 @@
+/* QDialog {
+	background-color: #9d9d9d; 
+} */ 
+
+
+/* QGroupBox {
+	background-color: #9d9d9d;
+} */
+
+font: "Roboto";
