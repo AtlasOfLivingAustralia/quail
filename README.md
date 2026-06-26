@@ -1,5 +1,3 @@
-# Quail
-
 # Quail <a href="https://quail.ala.org.au"><img src="help/source/_static/logo/logo.png" align="right" style="margin: 0px 10px 0px 10px;" alt="" height="138"/></a>
 
 <!-- badges: start -->
