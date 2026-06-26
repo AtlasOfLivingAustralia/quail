@@ -38,7 +38,7 @@ def classFactory(iface):  # pylint: disable=invalid-name
 
 
 def initGui(self):
-    """Not sure if this is correct"""
+    """Initialise the GUI"""
     self.pluginButton = self.add_action(
         ":/plugins/Quail/icon.png", text=self.tr("Start"), callback=self.run, parent=self.iface.mainWindow()
     )
