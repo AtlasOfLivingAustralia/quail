@@ -157,7 +157,7 @@ class Quail:
     def initGui(self):
         """Create the menu entries and toolbar icons inside the QGIS GUI."""
 
-        icon_path = ":/plugins/Quail/icon.png" #/plugins/quail/
+        icon_path = ":/plugins/Quail/icon.png"  # /plugins/quail/
         self.add_action(
             icon_path,
             text=self.tr(""),
@@ -179,7 +179,7 @@ class Quail:
 
         # Create the dialog with elements (after translation) and keep reference
         # Only create GUI ONCE in callback, so that it will only load when the plugin is started
-        if self.first_start == True:
+        if self.first_start:
             self.first_start = False
         self.dlg = QuailDialog()
 

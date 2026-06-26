@@ -13,7 +13,9 @@ class Ui_QuailDialogBase(object):
     def setupUi(self, QuailDialogBase):
         QuailDialogBase.setObjectName("QuailDialogBase")
         QuailDialogBase.resize(824, 715)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Preferred)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Preferred
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(QuailDialogBase.sizePolicy().hasHeightForWidth())
@@ -285,7 +287,7 @@ class Ui_QuailDialogBase(object):
         self.visitAlaPushButton.setText(_translate("QuailDialogBase", "Visit the ALA"))
         self.checkTaxonBackbonePushButton.setText(_translate("QuailDialogBase", "Check Taxonomic Backbone"))
         self.uploadSpeciesListPushButton.setText(_translate("QuailDialogBase", "Upload Species List"))
-        self.speciesNamesLabel.setText(_translate("QuailDialogBase", "Enter Names (separated by \';\'):"))
+        self.speciesNamesLabel.setText(_translate("QuailDialogBase", "Enter Names (separated by ';'):"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.Taxonomy), _translate("QuailDialogBase", "Taxonomy"))
         self.startDateLabel.setText(_translate("QuailDialogBase", "Start Date"))
         self.endDateLabel.setText(_translate("QuailDialogBase", "End Date"))
@@ -313,18 +315,22 @@ class Ui_QuailDialogBase(object):
         self.vicSensCheckBox.setText(_translate("QuailDialogBase", "Victoria"))
         self.tasSensCheckBox.setText(_translate("QuailDialogBase", "Tasmania"))
         self.waSensCheckBox.setText(_translate("QuailDialogBase", "Western Australia"))
-        self.bonnMigratoryCheckBox.setText(_translate("QuailDialogBase", "Bonn Convention Migratory \n"
-"Taxa"))
-        self.cambaCheckBox.setText(_translate("QuailDialogBase", "CAMBA (China-Australia \n"
-"Migratory Bird Agreement)"))
-        self.rokambaCheckBox.setText(_translate("QuailDialogBase", "ROKAMBA (Republic of \n"
-"Korea-Australia Migratory \n"
-"Bird Agreement)"))
-        self.jambaCheckBox.setText(_translate("QuailDialogBase", "JAMBA (Japan-Australia\n"
-"Migratory Bird Agreement)"))
-        self.nonNativeCheckBox.setText(_translate("QuailDialogBase", "Non-Native List for\n"
-"Australia and Territories "))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.AuthoritativeLists), _translate("QuailDialogBase", "Authoritative Lists"))
+        self.bonnMigratoryCheckBox.setText(_translate("QuailDialogBase", "Bonn Convention Migratory \n" "Taxa"))
+        self.cambaCheckBox.setText(
+            _translate("QuailDialogBase", "CAMBA (China-Australia \n" "Migratory Bird Agreement)")
+        )
+        self.rokambaCheckBox.setText(
+            _translate("QuailDialogBase", "ROKAMBA (Republic of \n" "Korea-Australia Migratory \n" "Bird Agreement)")
+        )
+        self.jambaCheckBox.setText(
+            _translate("QuailDialogBase", "JAMBA (Japan-Australia\n" "Migratory Bird Agreement)")
+        )
+        self.nonNativeCheckBox.setText(
+            _translate("QuailDialogBase", "Non-Native List for\n" "Australia and Territories ")
+        )
+        self.tabWidget.setTabText(
+            self.tabWidget.indexOf(self.AuthoritativeLists), _translate("QuailDialogBase", "Authoritative Lists")
+        )
         self.basisOfRecordLabel.setText(_translate("QuailDialogBase", "Basis of Record"))
         self.presAbsLabel.setText(_translate("QuailDialogBase", "Present/Absent"))
         self.dataProfileLabel.setText(_translate("QuailDialogBase", "Data Profile"))
@@ -345,7 +351,9 @@ class Ui_QuailDialogBase(object):
         self.emailInformationLabel.setText(_translate("QuailDialogBase", "ℹ️"))
         self.doiInformationLabel.setText(_translate("QuailDialogBase", "ℹ️"))
         self.checkNumOccurrences.setText(_translate("QuailDialogBase", "Check Number of Occurrences"))
-        self.speciesListCountsStatuses.setText(_translate("QuailDialogBase", "Get Species List With Counts and Statuses"))
+        self.speciesListCountsStatuses.setText(
+            _translate("QuailDialogBase", "Get Species List With Counts and Statuses")
+        )
         self.occDownload.setText(_translate("QuailDialogBase", "Import Occurrence Records"))
         self.openDocosPushButton.setText(_translate("QuailDialogBase", "Open Documentation"))
         self.contactAtlasPushButton.setText(_translate("QuailDialogBase", "Contact Your Atlas"))
@@ -353,6 +361,7 @@ class Ui_QuailDialogBase(object):
 
 if __name__ == "__main__":
     import sys
+
     app = QtWidgets.QApplication(sys.argv)
     QuailDialogBase = QtWidgets.QDialog()
     ui = Ui_QuailDialogBase()

@@ -1,7 +1,3 @@
-# This file contains metadata for your plugin.
-
-# This file should be included when you package your plugin.# Mandatory items:
-
 [general]
 name=Quail
 qgisMinimumVersion=3.0
@@ -13,6 +9,7 @@ email=support@ala.org.au
 
 about=A plugin designed to get biodiversity data from a number of Living Atlases into QGIS.  These include GBIF, the Atlas of Living Australia, Austria, Brazil, Flanders, Kew Gardens, Spain, Sweden, and the United Kingdom.
 
+tracker=https://github.com/AtlasOfLivingAustralia/quail/issues
 repository=https://github.com/AtlasOfLivingAustralia/quail
 # End of mandatory metadata
 

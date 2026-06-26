@@ -86,7 +86,7 @@ class QuailDialog(QtWidgets.QDialog, FORM_CLASS):
             "These are data quality profiles that can help filter out data that is not fit for your purpose.  Go to your relevant atlas for more details."
         )
         self.doiInformationLabel.setToolTip(
-            'Tick this box to get a DOI for your query in a popup box.  You can use this DOI in the text box to the right to get the same query.'
+            "Tick this box to get a DOI for your query in a popup box.  You can use this DOI in the text box to the right to get the same query."
         )
         self.emailInformationLabel.setToolTip(
             "This is your email you have registered with your chosen atlas.  To get your email registered, contact the relevant atlas.\n\nIf you are using GBIF, you need to provide your email, username and password in that order separated by commas."
@@ -171,7 +171,7 @@ class QuailDialog(QtWidgets.QDialog, FORM_CLASS):
             atlasNames[row["atlas"]] = row["atlas"]
 
     atlasEmails = {
-        "Australia": "https://ala.org.au\n\nsupport@ala.org.au", # try this
+        "Australia": "https://ala.org.au\n\nsupport@ala.org.au",  # try this
         "Austria": "https://auth.biodiversityatlas.at/cas/login\n\noffice@biodiversityaustria.at",
         "Brazil": "atendimento_sibbr@rnp.br",
         "Flanders": "https://natuurdata.inbo.be/\n\nhttps://www.vlaanderen.be/inbo/inbo/contacteer-inbo/",
@@ -179,7 +179,7 @@ class QuailDialog(QtWidgets.QDialog, FORM_CLASS):
         "Kew": "https://data.kew.org/?lang=en-GB\n\nhttps://data.kew.org/contact.html",
         "Spain": "https://auth.gbif.es/cas/login?lang=en\n\ninfo@gbif.es",
         "Sweden": "https://docs.biodiversitydata.se/support/",
-        "United Kingdom": "https://docs.nbnatlas.org/"
+        "United Kingdom": "https://docs.nbnatlas.org/",
     }
 
     # add variables for getting and displaying data
@@ -300,6 +300,7 @@ class QuailDialog(QtWidgets.QDialog, FORM_CLASS):
      *                                                                         *
      ***************************************************************************/
     """
+
     def open_to_ala(self):
         webbrowser.open("https://www.ala.org.au")
 
@@ -454,11 +455,11 @@ class QuailDialog(QtWidgets.QDialog, FORM_CLASS):
 
         # set information and buttons in the message box
         msg.setWindowTitle(title)
-        msg.resize(500,100)
+        msg.resize(500, 100)
         # msg.setStandardButtons(QMessageBox.StandardButton.Ok | QMessageBox.StandardButton.Cancel)
 
         # label for letting people know this is a DOI
-        label = QLabel("Here is your DOI for copying:",msg)
+        label = QLabel("Here is your DOI for copying:", msg)
         label.setObjectName("doi_info")
         label.move(40, 0)  # +2 to offset?
         label.resize(250, 50)
@@ -747,10 +748,10 @@ class QuailDialog(QtWidgets.QDialog, FORM_CLASS):
             "PRESERVED_SPECIMEN",
         ]
 
-       # get atlas for different eventDate formatting
+        # get atlas for different eventDate formatting
         atlas = self.atlasNames[self.atlasesComboBox.currentText()]
 
-         # declare list of potential values
+        # declare list of potential values
         bor = []
 
         # check to see if any/all boxes are check
@@ -785,7 +786,7 @@ class QuailDialog(QtWidgets.QDialog, FORM_CLASS):
             if startDate == datetime.now().date():
                 return None, None
             d, m, y = startDate.getDate()
-            if atlas in ["Global","GBIF"]:
+            if atlas in ["Global", "GBIF"]:
                 return f"{eventdate_dict[atlas]}={datetime(d, m, y).date().isoformat()}", None
             return f"{eventdate_dict[atlas]}={datetime(d, m, y).isoformat()}Z", None
 
@@ -797,13 +798,13 @@ class QuailDialog(QtWidgets.QDialog, FORM_CLASS):
         else:
             if endDate == datetime.now().date():
                 d, m, y = startDate.getDate()
-                if atlas in ["Global","GBIF"]:
+                if atlas in ["Global", "GBIF"]:
                     return f"{eventdate_dict[atlas]}>={datetime(d, m, y).date().isoformat()}", None
                 return f"{eventdate_dict[atlas]}>={datetime(d, m, y).isoformat()}Z", None
             else:
                 d1, m1, y1 = startDate.getDate()
                 d2, m2, y2 = endDate.getDate()
-                if atlas in ["Global","GBIF"]:
+                if atlas in ["Global", "GBIF"]:
                     startDateString = f"{eventdate_dict[atlas]}>={datetime(d1, m1, y1).date().isoformat()}"
                     endDateString = f"{eventdate_dict[atlas]}=<{datetime(d2, m2, y2).date().isoformat()}"
                 else:
@@ -885,7 +886,7 @@ class QuailDialog(QtWidgets.QDialog, FORM_CLASS):
         # get all of the checkable combo boxes available and their names
         spatial_children = [x for x in self.Spatial.children() if isinstance(x, QgsCheckableComboBox)]  # .objectName()
         spatial_children_names = [x.objectName()[0:12] for x in spatial_children]
-        
+
         # check if there are no spatial objects; if none, return None
         if len(spatial_children) == 0:
             return None
@@ -896,14 +897,14 @@ class QuailDialog(QtWidgets.QDialog, FORM_CLASS):
                 )
             )
             return "Invalid number of shapes"
-        
+
         # remove any layers which are not already loaded into the plugin
         included_layers = []
         for x in new_layers:
             for y in spatial_children_names:
                 if x.name()[0:12] in y:
                     included_layers.append(x)
-        
+
         # go through all layers and only get geometries of selected
         for i, (sc, nl) in enumerate(zip(spatial_children, included_layers)):  #
             attribute = self.spatialColumns[nl.name()[0:12]]
@@ -950,7 +951,7 @@ class QuailDialog(QtWidgets.QDialog, FORM_CLASS):
 
                 # get taxonomic columns from UI
                 self.get_taxon_column_names()
-                
+
                 # check if taxonomic columns were set - if they were, return selected taxonomic data;
                 # else, return a value to let the plugin know to end functions
                 if self.taxonomicColumns:
@@ -960,13 +961,13 @@ class QuailDialog(QtWidgets.QDialog, FORM_CLASS):
 
                         # rename the columns in the data to the Darwin Core names we need for querying
                         data_rename = data.rename(columns=self.taxonomicColumns)
-                        
+
                         # check to see which columns have been renamed
                         columns_in_data_rename = list(set(data_rename.columns).intersection(set(taxon_selections)))
-                        
+
                         # get information from the data as a dictionary of lists
                         taxon_info = data_rename[columns_in_data_rename].to_dict(orient="list")
-                        
+
                         # decide whether or not user should use the identifiers, specific_epithet, scientific_name
                         # or taxa argument of search_taxa
                         if "identifiers" in taxon_info.keys() and len(taxon_info.keys()) == 1:
@@ -1031,7 +1032,7 @@ class QuailDialog(QtWidgets.QDialog, FORM_CLASS):
         # set offset
         offset = 275
 
-        # get extant combo boxes and labels; remove them 
+        # get extant combo boxes and labels; remove them
         extant_ccb = [x for x in self.Spatial.children() if isinstance(x, QgsCheckableComboBox)]
         extant_lb = [x for x in self.Spatial.children() if isinstance(x, QLabel)]
         if len(extant_ccb) > 0:
@@ -1181,7 +1182,7 @@ class QuailDialog(QtWidgets.QDialog, FORM_CLASS):
                 else:
                     self.show_warning_messagebox("This file needs to be a csv.")
 
-                # get extant combo boxes and labels; remove them 
+                # get extant combo boxes and labels; remove them
                 extant_ccb = [x for x in self.Taxonomy.children() if isinstance(x, QgsCheckableComboBox)]
                 extant_lb = [x for x in self.Taxonomy.children() if isinstance(x, QLabel)]
                 if len(extant_ccb) > 0:
@@ -1239,10 +1240,10 @@ class QuailDialog(QtWidgets.QDialog, FORM_CLASS):
     /***************************************************************************
      * all of these functions will get input data from the UI.                 *
      *                                                                         *
-     *   check_backbone:                                                   *
+     *   check_backbone:                                                       *
      *       So far, this function runs the `search_taxa` function in `galah-  *
      *       python` to get back a list of taxon in the backbone that matches  *
-     *       what the user gave as input.                                      * 
+     *       what the user gave as input.                                      *
      *   prepare_query:                                                        *
      *       So far, this function gets the following information from the UI  *
      *       and places it in the appropriate place for the query:             *
@@ -1263,7 +1264,7 @@ class QuailDialog(QtWidgets.QDialog, FORM_CLASS):
      *       So far, this will run a check on how many records the user wants  *
      *       to download; if it is more than 5mil, don't allow them to down-   *
      *       load the records.  After the query passes that check, download    *
-     *       occurrence records and load them as a vector layer into QGIS      *  
+     *       occurrence records and load them as a vector layer into QGIS      *
      *                                                                         *
      ***************************************************************************/
     """
@@ -1302,7 +1303,7 @@ class QuailDialog(QtWidgets.QDialog, FORM_CLASS):
 
             # initialise variables
             total_matches = 0
-            stats_text = f"You have:\n\n"
+            stats_text = "You have:\n\n"
 
             # loop over all statistics and add them to output if the number is greater than 0
             for key in match_statistics.keys():
@@ -1317,7 +1318,9 @@ class QuailDialog(QtWidgets.QDialog, FORM_CLASS):
             if issues > 0:
 
                 # first, check for homonyms
-                homonymns = taxa_table.loc[taxa_table["issues"].astype(str).str.contains("homonym"), "issues"].count() # taxa_table["issues"] == "homonym"
+                homonymns = taxa_table.loc[
+                    taxa_table["issues"].astype(str).str.contains("homonym"), "issues"
+                ].count()  # taxa_table["issues"] == "homonym"
                 other = total - total_matches - homonymns
 
                 # add these stats to the overall text
@@ -1355,39 +1358,67 @@ class QuailDialog(QtWidgets.QDialog, FORM_CLASS):
                 self.show_warning_messagebox(
                     text="You need to provide an email to download occurrences", title="Warning"
                 )
-                return "provide_email","","","","",""
-            elif email not in [None, ""] and atlas in ["Global","GBIF"]:
+                return "provide_email", "", "", "", "", ""
+            elif email not in [None, ""] and atlas in ["Global", "GBIF"]:
                 if len(email.split(",")) != 3:
-                    self.show_warning_messagebox(text=f"You need to provide three values in the email box for GBIF, separated by commas:\n\nemail, username, password\n\n", title = "Warning")
-                    return "provide_email_gbif","","","","",""
-                email_GBIF,usernameGBIF,passwordGBIF = email.split(",")
+                    self.show_warning_messagebox(
+                        text="You need to provide three values in the email box for GBIF, separated by commas:\n\nemail, username, password\n\n",
+                        title="Warning",
+                    )
+                    return "provide_email_gbif", "", "", "", "", ""
+                email_GBIF, usernameGBIF, passwordGBIF = email.split(",")
 
             # if no reason is present, show user error message and exit
-            if reason in [None, "", "-- All --"] and atlas not in ["Brazil", "France", "Global", "GBIF", "Guatemala", "Portugal", "Spain"]:
+            if reason in [None, "", "-- All --"] and atlas not in [
+                "Brazil",
+                "France",
+                "Global",
+                "GBIF",
+                "Guatemala",
+                "Portugal",
+                "Spain",
+            ]:
                 self.show_warning_messagebox(
                     text="You need to provide a reason to download occurrences", title="Warning"
                 )
-                return "provide_reason","","","","","",
+                return (
+                    "provide_reason",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                )
 
         # set the configuration options here
-        if atlas in ["Global","GBIF"]:
-            galah.galah_config(atlas=atlas, authenticate=False, email=email_GBIF, reason=reason, data_profile=data_profile,
-                               usernameGBIF=usernameGBIF, passwordGBIF=passwordGBIF,qgis=True)
+        if atlas in ["Global", "GBIF"]:
+            galah.galah_config(
+                atlas=atlas,
+                authenticate=False,
+                email=email_GBIF,
+                reason=reason,
+                data_profile=data_profile,
+                usernameGBIF=usernameGBIF,
+                passwordGBIF=passwordGBIF,
+                qgis=True,
+            )
         else:
-            galah.galah_config(atlas=atlas, authenticate=False, email=email, reason=reason, data_profile=data_profile,qgis=True)
+            galah.galah_config(
+                atlas=atlas, authenticate=False, email=email, reason=reason, data_profile=data_profile, qgis=True
+            )
 
         # get any taxonomy argument
         taxonomy = self.parse_taxonomy()
 
         # get other parameters
         filters = self.parse_filters()
-        
+
         # get the DOI, if any, from the DOI text box
         doi = self.parse_doi_as_query()
 
         # add any spatial queries
         spatial = self.parse_spatial()
-        
+
         # set fields
         fields = self.set_data_fields()
 

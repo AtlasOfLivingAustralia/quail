@@ -135,7 +135,7 @@ Lat/long values for each atlas
 """
 latitude_dict = {
     "Australia": "decimalLatitude",
-    "Austria": "decimalLatitude", #"latitude",
+    "Austria": "decimalLatitude",  # "latitude",
     "Brazil": "latitude",
     "France": "latitude",
     "Flanders": "decimalLatitude",
@@ -149,7 +149,7 @@ latitude_dict = {
 
 longitude_dict = {
     "Australia": "decimalLongitude",
-    "Austria": "decimalLongitude", #"longitude",
+    "Austria": "decimalLongitude",  # "longitude",
     "Brazil": "longitude",
     "Flanders": "decimalLongitude",
     "Global": "decimalLongitude",
@@ -197,7 +197,7 @@ occstatus_dict = {
 
 occ_fields = {
     "Australia": ["basic", "dataProviderName", "stateConservation", "countryConservation"],
-    "Austria": ["basic","data_resource","data_provider"], 
+    "Austria": ["basic", "data_resource", "data_provider"],
     "Brazil": [
         "latitude",
         "longitude",
