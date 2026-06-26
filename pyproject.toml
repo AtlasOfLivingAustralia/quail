@@ -3,8 +3,8 @@ line-length = 120
 
 [tool.commitizen]
 name = "cz_conventional_commits"
-tag_format = "0.1.0"
-version = "0.2.0"
+tag_format = "1.0.0"
+version = "1.0.0"
 update_changelog_on_bump = true
 version_files = [
     "pyproject.toml:version",
