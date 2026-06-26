@@ -2,6 +2,7 @@
 
 <!-- badges: start -->
 
+![Python](https://img.shields.io/badge/Python-3776AB?style=flat&logo=python&logoColor=white)
 <!-- [![Codecov test coverage](https://codecov.io/gh/AtlasOfLivingAustralia/galah-python/branch/main/graph/badge.svg)](https://app.codecov.io/gh/AtlasOfLivingAustralia/galah-python?branch=main) -->
 
 <!-- badges: end -->
