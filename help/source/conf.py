@@ -93,31 +93,33 @@ html_theme = "renku"
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
-html_theme_options = {
-    # "navbar_align": "content",
-    # "github_url": "https://github.com/AtlasOfLivingAustralia/ala-qgis-plugin",
-    # "secondary_sidebar_items": ["page-toc"],
-    # "logo": {
-    # 	"image_light": "_static/logo/logo.png", # didn't have dir before
-    #     "image_dark": "_static/logo/logo.png",
-    # },
-}
+# html_theme_options = {
+#     "navbar_align": "content",
+#     "github_url": "https://github.com/AtlasOfLivingAustralia/quail",
+#     "secondary_sidebar_items": ["page-toc"],
+#     "logo": {
+#     	"image_light": "_static/logo/logo.png", # didn't have dir before
+#         "image_dark": "_static/logo/logo.png",
+#     },
+# }
 
 # was image_light
 html_sidebars = {"index": [], "search": []}  # , "**": ["sidebar-nav-bs"]}
+
+html_static_path = ["_static"]
 
 # Add any paths that contain custom themes here, relative to this directory.
 # html_theme_path = []
 
 # html_static_path = ['_static'] # added source/
 
-# html_logo = "_static/logo/logo.png"
+html_logo = "_static/logo/logo.png"
 
-# html_favicon = '_static/logo/favicon.ico'
+html_favicon = '_static/logo/favicon.ico'
 
-# html_css_files = ['css/extra.css']
+html_css_files = ['css/extra.css','css/style.css']
 
-# html_style = 'css/extra.css'
+html_style = 'css/style.css'
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".
@@ -138,7 +140,7 @@ html_sidebars = {"index": [], "search": []}  # , "**": ["sidebar-nav-bs"]}
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ["_static"]
+
 
 # If not '', a 'Last updated on:' timestamp is inserted at every page bottom,
 # using the given strftime format.
