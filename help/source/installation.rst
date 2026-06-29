@@ -1,18 +1,17 @@
 Installation
 =====================================
 
-Before installation of the plugin, you need to install QGIS. Go to `qgis.org <qgis.org>`_ and download the latest version 
-of QGIS before proceeding.
+Before installing the Quail plugin, you need to install QGIS. You can download the latest version of QGIS from `qgis.org <qgis.org>`_. 
 
 Installing Through the QGIS Plugin Manager
 ---------------------------------------------------- 
 
-First, you will need to open up QGIS.  After which, navigate
+In QGIS, navigate to: 
 
-Plugins->Manage and Install Plugins
+- Plugins->Manage and Install Plugins
 
-Search for "Quail"
+- Search for "Quail"
 
-Click "Install Plugin"
+- Click "Install Plugin"
 
 Other instructions here
